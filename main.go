@@ -40,6 +40,11 @@ func main() {
 							Usage:    "newline seperated JSON input file containing comments",
 							Required: true,
 						},
+						cli.StringFlag{
+							Name:     "output",
+							Usage:    "folder where the outputted mongo files should be placed",
+							Required: true,
+						},
 					},
 				},
 			},

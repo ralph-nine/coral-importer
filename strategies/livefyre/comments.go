@@ -1,21 +1,13 @@
 package livefyre
 
 import (
-	"bufio"
-	"context"
-	"io"
-	"os"
+	"runtime"
 	"strings"
-	"sync"
 	"time"
 
-	easyjson "github.com/mailru/easyjson"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
-	"gitlab.com/coralproject/coral-importer/common"
-	"gitlab.com/coralproject/coral-importer/common/coral"
-	"gitlab.com/coralproject/coral-importer/common/importer"
+	"gitlab.com/coralproject/coral-importer/common/pipeline"
 )
 
 // Time is the time.Time representation that LiveFyre uses.
@@ -35,175 +27,43 @@ func (t *Time) UnmarshalJSON(buf []byte) error {
 	return nil
 }
 
-// Comments will handle a data import task for importing comments into Coral
-// from a LiveFyre export.
-func Comments(c *cli.Context) error {
-	// Grab the quiet mode.
-	if c.GlobalBool("quiet") {
+func ConfigureLogger(c *cli.Context) {
+	quiet := c.GlobalBool("quiet")
+	json := c.GlobalBool("json")
+
+	if quiet {
 		logrus.SetLevel(logrus.InfoLevel)
 	} else {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 
-	// Configure JSON logs.
-	if c.GlobalBool("json") {
+	if json {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 	}
+}
 
-	// Grab the Tenant ID.
+// Comments will handle a data import task for importing comments into Coral
+// from a LiveFyre export.
+func Comments(c *cli.Context) error {
+	ConfigureLogger(c)
+
 	tenantID := c.String("tenantID")
-
-	// Grab the input fileName.
 	input := c.String("input")
+	output := c.String("output")
+	started := time.Now()
 
-	// Open that file for reading.
-	f, err := os.Open(input)
-	if err != nil {
-		return errors.Wrap(err, "could not open --input for reading")
-	}
-	defer f.Close()
+	logrus.Info("started")
 
-	logrus.WithField("input", input).Info("opened for reading")
+	// Create the file reader.
+	reader := pipeline.NewFileReader(input)
 
-	// Setup the scanner.
-	r := bufio.NewReader(f)
-
-	// Setup the importers.
-	stories := importer.New("stories")
-	comments := importer.New("comments")
-
-	// Configure the context for the importers.
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Start the importers.
-	var wg sync.WaitGroup
-	wg.Add(2)
-	go comments.Start(ctx, &wg)
-	go stories.Start(ctx, &wg)
-
-	// Keep track of the processed lines.
-	lines := 0
-
-	// Start reading the stories line by line from the file.
-	for {
-		line, err := r.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-
-			return errors.Wrap(err, "couldn't read the file")
-		}
-
-		// Parse the Story from the file.
-		var in Story
-		if err := easyjson.Unmarshal([]byte(line), &in); err != nil {
-			return errors.Wrap(err, "could not parse a comment in the --input file")
-		}
-
-		// Increment the line count.
-		lines++
-
-		// Check the input to ensure we're validated.
-		if err := common.Check(&in); err != nil {
-			return errors.Wrap(err, "checking failed input Story")
-		}
-
-		// Translate the Story to a coral.Story.
-		story := TranslateStory(tenantID, &in)
-
-		// Check the story to ensure we're validated.
-		if err := common.Check(story); err != nil {
-			return errors.Wrap(err, "checking failed output coral.Story")
-		}
-
-		// Collect all the stories comments so we can process family
-		// relationships as well.
-		storyComments := make([]*coral.Comment, 0, len(in.Comments))
-
-		// Reconstruct family relationships for these comments.
-		r := common.NewReconstructor()
-
-		// Translate the comments.
-		for _, inc := range in.Comments {
-			if inc.AuthorID == "" {
-				logrus.WithFields(logrus.Fields{
-					"storyID":   story.ID,
-					"commentID": inc.ID,
-					"line":      lines,
-				}).Warn("comment was missing author_id field")
-				continue
-			}
-
-			// Check the comment to ensure we're validated.
-			if err := common.Check(&inc); err != nil {
-				return errors.Wrapf(err, "checking failed input Comment for Story %s", story.ID)
-			}
-
-			// Translate the Comment to a coral.Comment.
-			comment := TranslateComment(tenantID, &inc)
-			comment.StoryID = story.ID
-
-			// Check the comment to ensure we're validated.
-			if err := common.Check(comment); err != nil {
-				return errors.Wrap(err, "checking failed output coral.Comment")
-			}
-
-			// Add the comment to the reconstructor.
-			r.AddComment(comment)
-
-			// Add it to the story comments.
-			storyComments = append(storyComments, comment)
-		}
-
-		// Send the comments off to the importer.
-		for _, comment := range storyComments {
-			// Add reconstructed data.
-			comment.ChildIDs = r.GetChildren(comment.ID)
-			comment.ChildCount = len(comment.ChildIDs)
-			comment.AncestorIDs = r.GetAncestors(comment.ID)
-
-			// Send the comment to the importer.
-			if err := comments.Import(*comment); err != nil {
-				return errors.Wrap(err, "failed to import the comment")
-			}
-
-			logrus.WithFields(logrus.Fields{
-				"storyID":   story.ID,
-				"commentID": comment.ID,
-				"line":      lines,
-			}).Debug("imported comment")
-		}
-
-		// Increment the stories comment counts.
-		for _, comment := range storyComments {
-			story.IncrementCommentCounts(comment.Status)
-		}
-
-		// Send the story to the importer.
-		if err := stories.Import(*story); err != nil {
-			return errors.Wrap(err, "failed to import the story")
-		}
-
-		logrus.WithFields(logrus.Fields{
-			"storyID": story.ID,
-			"line":    lines,
-		}).Debug("imported story")
-
-		logrus.WithFields(logrus.Fields{
-			"storyID":  story.ID,
-			"line":     lines,
-			"comments": len(storyComments),
-		}).Info("finished line")
+	// Create the processor that will write these entries out.
+	if err := pipeline.NewFileWriter(output, pipeline.MergeTaskOutputPipelines(pipeline.WrapProcessors(reader, runtime.NumCPU(), Process(tenantID)))); err != nil {
+		logrus.WithError(err).WithField("took", time.Now().Sub(started).String()).Error("finished processing")
+		return err
 	}
 
-	// Close the importers and wait till they're done.
-	comments.Done()
-	stories.Done()
-	wg.Wait()
-
-	logrus.WithField("lines", lines).Info("finished processing")
+	logrus.WithField("took", time.Now().Sub(started).String()).Info("finished processing")
 
 	return nil
 }
