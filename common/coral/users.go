@@ -2,8 +2,9 @@
 package coral
 
 type UserProfile struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
+	ID           string `json:"id"`
+	Type         string `json:"type"`
+	DastIssuedAt Time   `json:"lastIssuedAt"`
 }
 
 type UserNotifications struct {
@@ -85,6 +86,7 @@ func NewUser(tenantID string) *User {
 		TenantID:      tenantID,
 		Notifications: NewUserNotifications(),
 		Status:        NewUserStatus(),
+		Profiles:      []UserProfile{},
 		Imported:      true,
 	}
 }

@@ -105,5 +105,14 @@ func TranslateUser(tenantID string, in *User, now time.Time) *coral.User {
 
 	user.Status.UsernameStatus.History = append(user.Status.UsernameStatus.History, history)
 
+	// Add the user profile.
+	profile := coral.UserProfile{
+		ID:   in.ID,
+		Type: "sso",
+	}
+	profile.DastIssuedAt.Time = now
+
+	user.Profiles = append(user.Profiles, profile)
+
 	return user
 }

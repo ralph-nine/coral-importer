@@ -412,6 +412,10 @@ func easyjson84c0690eDecodeGitlabComCoralprojectCoralImporterCommonCoral4(in *jl
 			out.ID = string(in.String())
 		case "type":
 			out.Type = string(in.String())
+		case "lastIssuedAt":
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.DastIssuedAt).UnmarshalJSON(data))
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -435,6 +439,11 @@ func easyjson84c0690eEncodeGitlabComCoralprojectCoralImporterCommonCoral4(out *j
 		const prefix string = ",\"type\":"
 		out.RawString(prefix)
 		out.String(string(in.Type))
+	}
+	{
+		const prefix string = ",\"lastIssuedAt\":"
+		out.RawString(prefix)
+		out.Raw((in.DastIssuedAt).MarshalJSON())
 	}
 	out.RawByte('}')
 }
@@ -801,7 +810,7 @@ func easyjson84c0690eDecodeGitlabComCoralprojectCoralImporterCommonCoral8(in *jl
 				in.Delim('[')
 				if out.Profiles == nil {
 					if !in.IsDelim(']') {
-						out.Profiles = make([]UserProfile, 0, 2)
+						out.Profiles = make([]UserProfile, 0, 1)
 					} else {
 						out.Profiles = []UserProfile{}
 					}
