@@ -63,31 +63,27 @@ func (s *Story) IncrementCommentCounts(status string) {
 	case "APPROVED":
 		s.CommentCounts.Status.Approved++
 		return
-	case "NONE":
-		s.CommentCounts.Status.None++
-		return
 	case "REJECTED":
 		s.CommentCounts.Status.Rejected++
 		return
+	case "NONE":
+		s.CommentCounts.Status.None++
+		s.CommentCounts.ModerationQueue.Total++
+		s.CommentCounts.ModerationQueue.Queues.Unmoderated++
+		break
 	case "PREMOD":
 		s.CommentCounts.Status.Premod++
+		s.CommentCounts.ModerationQueue.Total++
+		s.CommentCounts.ModerationQueue.Queues.Pending++
+		s.CommentCounts.ModerationQueue.Queues.Unmoderated++
 		break
 	case "SYSTEM_WITHHELD":
 		s.CommentCounts.Status.SystemWithheld++
+		s.CommentCounts.ModerationQueue.Total++
+		s.CommentCounts.ModerationQueue.Queues.Pending++
+		s.CommentCounts.ModerationQueue.Queues.Unmoderated++
 		break
 	}
-
-	// Comment is one of "NONE" "PREMOD"
-	s.CommentCounts.ModerationQueue.Total++
-
-	// Comment with status of "NONE" can only be in the unmoderated queue.
-	if status == "NONE" {
-		s.CommentCounts.ModerationQueue.Queues.Unmoderated++
-		return
-	}
-
-	// Comment now has the status of "PREMOD"
-	s.CommentCounts.ModerationQueue.Queues.Pending++
 }
 
 // NewStory will return an initalized Story.
