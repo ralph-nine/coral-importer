@@ -3,14 +3,13 @@ package livefyre
 import (
 	"bufio"
 	"context"
-	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 	"strings"
 	"sync"
 	"time"
 
+	easyjson "github.com/mailru/easyjson"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -36,72 +35,23 @@ func (t *Time) UnmarshalJSON(buf []byte) error {
 	return nil
 }
 
-// Comment is the Comment as exported from the LiveFyre platform.
-type Comment struct {
-	ID       int    `json:"id" validate:"required"`
-	BodyHTML string `json:"body_html" validate:"required"`
-	ParentID int    `json:"parent_id"`
-	AuthorID string `json:"author_id"`
-	State    int    `json:"state"`
-	Created  Time   `json:"created" validate:"required"`
-}
-
-// TranslateComment will copy over simple fields to the new coral.Comment.
-func TranslateComment(in *Comment) *coral.Comment {
-	comment := coral.NewComment()
-	comment.ID = fmt.Sprintf("%d", in.ID)
-	if in.ParentID > 0 {
-		comment.ParentID = fmt.Sprintf("%d", in.ParentID)
-		comment.ParentRevisionID = comment.ParentID
-	}
-	comment.AuthorID = in.AuthorID
-	comment.CreatedAt.Time = in.Created.Time
-
-	switch in.State {
-	// TODO: implement
-	default:
-		comment.Status = "NONE"
-	}
-
-	revision := coral.Revision{
-		ID:           comment.ID,
-		Body:         in.BodyHTML,
-		Metadata:     coral.RevisionMetadata{},
-		ActionCounts: map[string]int{},
-	}
-	revision.CreatedAt.Time = in.Created.Time
-
-	comment.Revisions = append(comment.Revisions, revision)
-
-	return comment
-}
-
-// Story is the Story as exported from the LiveFyre platform.
-type Story struct {
-	ID       string    `json:"id" validate:"required"`
-	Source   string    `json:"source" validate:"required,url"`
-	Comments []Comment `json:"comments" validate:"required"`
-	Created  Time      `json:"created"  validate:"required"`
-}
-
-// TranslateStory will copy over simple fields to the new coral.Story.
-func TranslateStory(in *Story) *coral.Story {
-	story := coral.NewStory()
-	story.ID = in.ID
-	story.URL = in.Source
-	story.CreatedAt = in.Created.Time
-
-	return story
-}
-
 // Comments will handle a data import task for importing comments into Coral
 // from a LiveFyre export.
 func Comments(c *cli.Context) error {
-	// Grab the debug mode.
-	debug := c.GlobalBool("debug")
-	if debug {
+	// Grab the quiet mode.
+	if c.GlobalBool("quiet") {
+		logrus.SetLevel(logrus.InfoLevel)
+	} else {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
+
+	// Configure JSON logs.
+	if c.GlobalBool("json") {
+		logrus.SetFormatter(&logrus.JSONFormatter{})
+	}
+
+	// Grab the Tenant ID.
+	tenantID := c.String("tenantID")
 
 	// Grab the input fileName.
 	input := c.String("input")
@@ -148,7 +98,7 @@ func Comments(c *cli.Context) error {
 
 		// Parse the Story from the file.
 		var in Story
-		if err := json.Unmarshal([]byte(line), &in); err != nil {
+		if err := easyjson.Unmarshal([]byte(line), &in); err != nil {
 			return errors.Wrap(err, "could not parse a comment in the --input file")
 		}
 
@@ -161,22 +111,12 @@ func Comments(c *cli.Context) error {
 		}
 
 		// Translate the Story to a coral.Story.
-		story := TranslateStory(&in)
+		story := TranslateStory(tenantID, &in)
 
 		// Check the story to ensure we're validated.
 		if err := common.Check(story); err != nil {
 			return errors.Wrap(err, "checking failed output coral.Story")
 		}
-
-		// Send the story to the importer.
-		if err := stories.Import(*story); err != nil {
-			return errors.Wrap(err, "failed to import the story")
-		}
-
-		logrus.WithFields(logrus.Fields{
-			"storyID": story.ID,
-			"line":    lines,
-		}).Info("imported story")
 
 		// Collect all the stories comments so we can process family
 		// relationships as well.
@@ -202,7 +142,7 @@ func Comments(c *cli.Context) error {
 			}
 
 			// Translate the Comment to a coral.Comment.
-			comment := TranslateComment(&inc)
+			comment := TranslateComment(tenantID, &inc)
 			comment.StoryID = story.ID
 
 			// Check the comment to ensure we're validated.
@@ -233,8 +173,29 @@ func Comments(c *cli.Context) error {
 				"storyID":   story.ID,
 				"commentID": comment.ID,
 				"line":      lines,
-			}).Info("imported comment")
+			}).Debug("imported comment")
 		}
+
+		// Increment the stories comment counts.
+		for _, comment := range storyComments {
+			story.IncrementCommentCounts(comment.Status)
+		}
+
+		// Send the story to the importer.
+		if err := stories.Import(*story); err != nil {
+			return errors.Wrap(err, "failed to import the story")
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"storyID": story.ID,
+			"line":    lines,
+		}).Debug("imported story")
+
+		logrus.WithFields(logrus.Fields{
+			"storyID":  story.ID,
+			"line":     lines,
+			"comments": len(storyComments),
+		}).Info("finished line")
 	}
 
 	// Close the importers and wait till they're done.

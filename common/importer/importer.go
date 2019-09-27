@@ -3,21 +3,22 @@ package importer
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"sync"
+
+	"github.com/mailru/easyjson"
 )
 
 // Importer manages importing documents into MongoDB after a validation process.
 type Importer struct {
-	docs       chan interface{}
+	docs       chan easyjson.Marshaler
 	collection string
 }
 
 // Import will insert the document onto the importer to get processed.
-func (i *Importer) Import(doc interface{}) error {
+func (i *Importer) Import(doc easyjson.Marshaler) error {
 	if doc == nil {
 		return errors.New("can't import nil")
 	}
@@ -51,12 +52,12 @@ func (i *Importer) Start(ctx context.Context, wg *sync.WaitGroup) {
 				return
 			}
 
-			en := json.NewEncoder(w)
-			en.SetEscapeHTML(false)
-			if err := en.Encode(doc); err != nil {
+			bytes, err := easyjson.Marshal(doc)
+			if err != nil {
 				return
 			}
 
+			w.Write(bytes)
 			w.WriteString("\n")
 		}
 	}
@@ -70,6 +71,6 @@ func (i *Importer) Done() {
 func New(collection string) *Importer {
 	return &Importer{
 		collection: collection,
-		docs:       make(chan interface{}, 100),
+		docs:       make(chan easyjson.Marshaler, 100),
 	}
 }

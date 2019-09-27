@@ -10,6 +10,7 @@ require (
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428 // indirect
 	github.com/leebenson/conform v0.0.0-20190822094432-4c55492f71d7
 	github.com/leodido/go-urn v1.1.0 // indirect
+	github.com/mailru/easyjson v0.7.0
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/urfave/cli v1.22.1
