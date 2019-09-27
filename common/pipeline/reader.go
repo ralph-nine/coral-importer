@@ -8,16 +8,22 @@ import (
 	"github.com/pkg/errors"
 )
 
+type TaskReaderInput struct {
+	Error error
+	Line  int
+	Input string
+}
+
 // NewFileReader will read from a file and emit new TaskInput's from the lines.
-func NewFileReader(fileName string) <-chan TaskInput {
-	out := make(chan TaskInput)
+func NewFileReader(fileName string) <-chan TaskReaderInput {
+	out := make(chan TaskReaderInput)
 	go func() {
 		defer close(out)
 
 		// Open that file for reading.
 		f, err := os.Open(fileName)
 		if err != nil {
-			out <- TaskInput{
+			out <- TaskReaderInput{
 				Error: errors.Wrap(err, "could not open --input for reading"),
 			}
 			return
@@ -38,7 +44,7 @@ func NewFileReader(fileName string) <-chan TaskInput {
 					break
 				}
 
-				out <- TaskInput{
+				out <- TaskReaderInput{
 					Error: errors.Wrap(err, "couldn't read the file"),
 				}
 				return
@@ -48,7 +54,7 @@ func NewFileReader(fileName string) <-chan TaskInput {
 			lines++
 
 			// Send the input to a processor.
-			out <- TaskInput{
+			out <- TaskReaderInput{
 				Line:  lines,
 				Input: line,
 			}

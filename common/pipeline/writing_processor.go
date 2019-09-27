@@ -11,13 +11,13 @@ import (
 // import file.
 type CollectionWriter func(collection string, doc easyjson.Marshaler) error
 
-// Processor is the actual processor that recieves a line.
-type Processor func(writer CollectionWriter, input TaskInput) error
+// WritingProcessor is the actual processor that recieves a line.
+type WritingProcessor func(writer CollectionWriter, input *TaskReaderInput) error
 
-// WrapProcess will wrap a Processor around a fanning input queue and
+// HandleWritingProcessor will wrap a Processor around a fanning input queue and
 // collect the results into an output queue.
-func WrapProcess(in <-chan TaskInput, process Processor) <-chan TaskOutput {
-	out := make(chan TaskOutput)
+func HandleWritingProcessor(in <-chan TaskReaderInput, process WritingProcessor) <-chan TaskWriterOutput {
+	out := make(chan TaskWriterOutput)
 
 	writeToOutput := func(collection string, doc easyjson.Marshaler) error {
 		bytes, err := easyjson.Marshal(doc)
@@ -25,7 +25,7 @@ func WrapProcess(in <-chan TaskInput, process Processor) <-chan TaskOutput {
 			return errors.Wrap(err, "could not marshal output")
 		}
 
-		out <- TaskOutput{
+		out <- TaskWriterOutput{
 			Collection: collection,
 			Document:   bytes,
 		}
@@ -37,14 +37,14 @@ func WrapProcess(in <-chan TaskInput, process Processor) <-chan TaskOutput {
 		defer close(out)
 		for n := range in {
 			if n.Error != nil {
-				out <- TaskOutput{
+				out <- TaskWriterOutput{
 					Error: errors.Wrap(n.Error, "error occurred on stack"),
 				}
 				return
 			}
 
-			if err := process(writeToOutput, n); err != nil {
-				out <- TaskOutput{
+			if err := process(writeToOutput, &n); err != nil {
+				out <- TaskWriterOutput{
 					Error: errors.Wrap(err, "error occurred during processing"),
 				}
 				return
@@ -55,10 +55,11 @@ func WrapProcess(in <-chan TaskInput, process Processor) <-chan TaskOutput {
 	return out
 }
 
-func WrapProcessors(input <-chan TaskInput, process Processor) []<-chan TaskOutput {
-	out := make([]<-chan TaskOutput, runtime.NumCPU())
+// FanWritingProcessors will fan the processor across the number of CPU's available.
+func FanWritingProcessors(input <-chan TaskReaderInput, process WritingProcessor) []<-chan TaskWriterOutput {
+	out := make([]<-chan TaskWriterOutput, runtime.NumCPU())
 	for i := range out {
-		out[i] = WrapProcess(input, process)
+		out[i] = HandleWritingProcessor(input, process)
 	}
 	return out
 }

@@ -5,12 +5,47 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/pkg/errors"
 )
 
+type TaskWriterOutput struct {
+	Error      error
+	Collection string
+	Document   []byte
+}
+
+// MergeTaskWriterOutputPipelines will collect all results from the input channels
+// and output them on a single channel.
+func MergeTaskWriterOutputPipelines(cs []<-chan TaskWriterOutput) <-chan TaskWriterOutput {
+	var wg sync.WaitGroup
+	out := make(chan TaskWriterOutput)
+
+	// Start an output goroutine for each input channel in cs.  output
+	// copies values from c to out until c is closed, then calls wg.Done.
+	output := func(c <-chan TaskWriterOutput) {
+		for n := range c {
+			out <- n
+		}
+		wg.Done()
+	}
+	wg.Add(len(cs))
+	for _, c := range cs {
+		go output(c)
+	}
+
+	// Start a goroutine to close out once all the output goroutines are
+	// done.  This must start after the wg.Add call.
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+	return out
+}
+
 // NewFileWriter will write the outputs out based on the output.
-func NewFileWriter(folder string, input <-chan TaskOutput) error {
+func NewFileWriter(folder string, input <-chan TaskWriterOutput) error {
 	writers := make(map[string]*bufio.Writer)
 
 	for task := range input {

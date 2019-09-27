@@ -3,6 +3,7 @@ package livefyre
 
 import (
 	"fmt"
+	"time"
 
 	"gitlab.com/coralproject/coral-importer/common/coral"
 )
@@ -12,7 +13,7 @@ type Comment struct {
 	ID       int    `json:"id" validate:"required"`
 	BodyHTML string `json:"body_html" validate:"required"`
 	ParentID int    `json:"parent_id"`
-	AuthorID string `json:"author_id"`
+	AuthorID string `json:"author_id" conform:"lower"`
 	State    int    `json:"state"`
 	Created  Time   `json:"created" validate:"required"`
 }
@@ -78,4 +79,31 @@ func TranslateStory(tenantID string, in *Story) *coral.Story {
 	story.CreatedAt.Time = in.Created.Time
 
 	return story
+}
+
+// User represents a User in the LiveFyre platform.
+type User struct {
+	ID          string `json:"id" validate:"required" conform:"lower"`
+	DisplayName string `json:"display_name"`
+	Email       string `json:"email" validate:"email,required" conform:"email,lower"`
+}
+
+// TranslateUser will transform a LiveFyre User to a coral.User.
+func TranslateUser(tenantID string, in *User, now time.Time) *coral.User {
+	user := coral.NewUser(tenantID)
+	user.ID = in.ID
+	user.Email = in.Email
+	user.Username = in.DisplayName
+
+	// Add the usernamme history item.
+	history := coral.UserUsernameStatusHistory{
+		ID:        in.ID,
+		Username:  in.DisplayName,
+		CreatedBy: in.ID,
+	}
+	history.CreatedAt.Time = now
+
+	user.Status.UsernameStatus.History = append(user.Status.UsernameStatus.History, history)
+
+	return user
 }

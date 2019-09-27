@@ -38,8 +38,13 @@ func main() {
 							Required: true,
 						},
 						cli.StringFlag{
-							Name:     "input",
+							Name:     "comments",
 							Usage:    "newline seperated JSON input file containing comments",
+							Required: true,
+						},
+						cli.StringFlag{
+							Name:     "users",
+							Usage:    "newline seperated JSON input file containing users",
 							Required: true,
 						},
 						cli.StringFlag{
