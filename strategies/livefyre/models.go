@@ -94,6 +94,7 @@ func TranslateUser(tenantID string, in *User, now time.Time) *coral.User {
 	user.ID = in.ID
 	user.Email = in.Email
 	user.Username = in.DisplayName
+	user.CreatedAt.Time = now
 
 	// Add the usernamme history item.
 	history := coral.UserUsernameStatusHistory{

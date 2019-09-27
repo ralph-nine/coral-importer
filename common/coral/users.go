@@ -61,10 +61,16 @@ type UserStatus struct {
 
 func NewUserStatus() UserStatus {
 	return UserStatus{
-		SuspensionStatus: UserSuspensionStatus{},
-		BanStatus:        UserBanStatus{},
-		UsernameStatus:   NewUserUsernameStatus(),
-		PremodStatus:     UserPremodStatus{},
+		SuspensionStatus: UserSuspensionStatus{
+			History: []string{},
+		},
+		BanStatus: UserBanStatus{
+			History: []string{},
+		},
+		UsernameStatus: NewUserUsernameStatus(),
+		PremodStatus: UserPremodStatus{
+			History: []string{},
+		},
 	}
 }
 
@@ -74,7 +80,7 @@ type User struct {
 	Username      string            `json:"username" validate:"required"`
 	Email         string            `json:"email" validate:"email"`
 	Profiles      []UserProfile     `json:"profiles,omitempty"`
-	Role          string            `json:"role" validate:"oneof=COMMENTER STAFF MODERATOR ADMIN"`
+	Role          string            `json:"role" validate:"required,oneof=COMMENTER STAFF MODERATOR ADMIN"`
 	Notifications UserNotifications `json:"notifications"`
 	Status        UserStatus        `json:"status"`
 	CreatedAt     Time              `json:"createdAt" validate:"required"`
@@ -87,6 +93,7 @@ func NewUser(tenantID string) *User {
 		Notifications: NewUserNotifications(),
 		Status:        NewUserStatus(),
 		Profiles:      []UserProfile{},
+		Role:          "COMMENTER",
 		Imported:      true,
 	}
 }
