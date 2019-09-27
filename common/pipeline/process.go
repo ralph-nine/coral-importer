@@ -1,6 +1,8 @@
 package pipeline
 
 import (
+	"runtime"
+
 	"github.com/mailru/easyjson"
 	"github.com/pkg/errors"
 )
@@ -53,8 +55,8 @@ func WrapProcess(in <-chan TaskInput, process Processor) <-chan TaskOutput {
 	return out
 }
 
-func WrapProcessors(input <-chan TaskInput, size int, process Processor) []<-chan TaskOutput {
-	out := make([]<-chan TaskOutput, size)
+func WrapProcessors(input <-chan TaskInput, process Processor) []<-chan TaskOutput {
+	out := make([]<-chan TaskOutput, runtime.NumCPU())
 	for i := range out {
 		out[i] = WrapProcess(input, process)
 	}

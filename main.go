@@ -5,6 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
+	"gitlab.com/coralproject/coral-importer/common"
 	"gitlab.com/coralproject/coral-importer/strategies/livefyre"
 )
 
@@ -22,6 +23,7 @@ func main() {
 			Usage: "output logs in JSON",
 		},
 	}
+	app.Before = common.ConfigureLogger
 	app.Commands = []cli.Command{
 		{
 			Name: "livefyre",
