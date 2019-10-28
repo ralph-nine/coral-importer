@@ -8,15 +8,19 @@ type Reconstructor struct {
 }
 
 func (r *Reconstructor) AddComment(comment *coral.Comment) {
+	r.AddIDs(comment.ID, comment.ParentID)
+}
+
+func (r *Reconstructor) AddIDs(id, parentID string) {
 	// Save the comment's parent.
-	r.parents[comment.ID] = comment.ParentID
+	r.parents[id] = parentID
 
 	// Add the comment to the array of children, if it has any.
-	if comment.ParentID != "" {
-		if _, ok := r.children[comment.ParentID]; !ok {
-			r.children[comment.ParentID] = []string{comment.ID}
+	if parentID != "" {
+		if _, ok := r.children[parentID]; !ok {
+			r.children[parentID] = []string{id}
 		} else {
-			r.children[comment.ParentID] = append(r.children[comment.ParentID], comment.ID)
+			r.children[parentID] = append(r.children[parentID], id)
 		}
 	}
 }

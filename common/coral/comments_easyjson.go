@@ -439,6 +439,18 @@ func easyjsonD09abad2DecodeGitlabComCoralprojectCoralImporterCommonCoral3(in *jl
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.CreatedAt).UnmarshalJSON(data))
 			}
+		case "deletedAt":
+			if in.IsNull() {
+				in.Skip()
+				out.DeletedAt = nil
+			} else {
+				if out.DeletedAt == nil {
+					out.DeletedAt = new(Time)
+				}
+				if data := in.Raw(); in.Ok() {
+					in.AddError((*out.DeletedAt).UnmarshalJSON(data))
+				}
+			}
 		case "imported":
 			out.Imported = bool(in.Bool())
 		default:
@@ -584,6 +596,11 @@ func easyjsonD09abad2EncodeGitlabComCoralprojectCoralImporterCommonCoral3(out *j
 		const prefix string = ",\"createdAt\":"
 		out.RawString(prefix)
 		out.Raw((in.CreatedAt).MarshalJSON())
+	}
+	if in.DeletedAt != nil {
+		const prefix string = ",\"deletedAt\":"
+		out.RawString(prefix)
+		out.Raw((*in.DeletedAt).MarshalJSON())
 	}
 	{
 		const prefix string = ",\"imported\":"

@@ -97,6 +97,26 @@ func easyjsonE08b5de9DecodeGitlabComCoralprojectCoralImporterCommonCoral1(in *jl
 		switch key {
 		case "title":
 			out.Title = string(in.String())
+		case "author":
+			out.Author = string(in.String())
+		case "description":
+			out.Description = string(in.String())
+		case "image":
+			out.Image = string(in.String())
+		case "section":
+			out.Section = string(in.String())
+		case "publishedAt":
+			if in.IsNull() {
+				in.Skip()
+				out.PublishedAt = nil
+			} else {
+				if out.PublishedAt == nil {
+					out.PublishedAt = new(Time)
+				}
+				if data := in.Raw(); in.Ok() {
+					in.AddError((*out.PublishedAt).UnmarshalJSON(data))
+				}
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -116,6 +136,56 @@ func easyjsonE08b5de9EncodeGitlabComCoralprojectCoralImporterCommonCoral1(out *j
 		first = false
 		out.RawString(prefix[1:])
 		out.String(string(in.Title))
+	}
+	if in.Author != "" {
+		const prefix string = ",\"author\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.Author))
+	}
+	if in.Description != "" {
+		const prefix string = ",\"description\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.Description))
+	}
+	if in.Image != "" {
+		const prefix string = ",\"image\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.Image))
+	}
+	if in.Section != "" {
+		const prefix string = ",\"section\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.Section))
+	}
+	if in.PublishedAt != nil {
+		const prefix string = ",\"publishedAt\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Raw((*in.PublishedAt).MarshalJSON())
 	}
 	out.RawByte('}')
 }

@@ -4,7 +4,9 @@ package coral
 type UserProfile struct {
 	ID           string `json:"id"`
 	Type         string `json:"type"`
-	DastIssuedAt Time   `json:"lastIssuedAt"`
+	Password     string `json:"password,omitempty"`
+	PasswordID   string `json:"passwordID,omitempty"`
+	LastIssuedAt *Time  `json:"lastIssuedAt,omitempty"`
 }
 
 type UserNotifications struct {
@@ -74,16 +76,29 @@ func NewUserStatus() UserStatus {
 	}
 }
 
+type IgnoredUser struct {
+	ID        string `json:"id"`
+	CreatedAt Time   `json:"createdAt"`
+}
+
+type UserToken struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	CreatedAt Time   `json:"createdAt"`
+}
+
 type User struct {
 	TenantID      string            `json:"tenantID" validate:"required"`
 	ID            string            `json:"id" conform:"trim" validate:"required"`
 	Username      string            `json:"username" validate:"required"`
-	Email         string            `json:"email" validate:"email"`
+	Email         string            `json:"email,omitempty" validate:"email"`
 	Profiles      []UserProfile     `json:"profiles,omitempty"`
 	Role          string            `json:"role" validate:"required,oneof=COMMENTER STAFF MODERATOR ADMIN"`
 	Notifications UserNotifications `json:"notifications"`
 	Status        UserStatus        `json:"status"`
 	CreatedAt     Time              `json:"createdAt" validate:"required"`
+	IgnoredUsers  []IgnoredUser     `json:"ignoredUsers"`
+	Tokens        []UserToken       `json:"tokens"`
 	Imported      bool              `json:"imported"`
 }
 
@@ -93,6 +108,7 @@ func NewUser(tenantID string) *User {
 		Notifications: NewUserNotifications(),
 		Status:        NewUserStatus(),
 		Profiles:      []UserProfile{},
+		Tokens:        []UserToken{},
 		Role:          "COMMENTER",
 		Imported:      true,
 	}

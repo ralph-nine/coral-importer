@@ -43,7 +43,12 @@ func NewStoryCommentCounts() StoryCommentCounts {
 type StorySettings struct{}
 
 type StoryMetadata struct {
-	Title string `json:"title,omitempty"`
+	Title       string `json:"title,omitempty"`
+	Author      string `json:"author,omitempty"`
+	Description string `json:"description,omitempty"`
+	Image       string `json:"image,omitempty"`
+	Section     string `json:"section,omitempty"`
+	PublishedAt *Time  `json:"publishedAt,omitempty"`
 }
 
 // Story is thye base Coral Story that is used in Coral.

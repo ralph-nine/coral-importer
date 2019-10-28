@@ -27,9 +27,9 @@ func (t *Time) UnmarshalJSON(buf []byte) error {
 	return nil
 }
 
-// Comments will handle a data import task for importing comments into Coral
+// Import will handle a data import task for importing comments into Coral
 // from a LiveFyre export.
-func Comments(c *cli.Context) error {
+func Import(c *cli.Context) error {
 	// tenantID is the ID of the Tenant that we are importing these documents
 	// for.
 	tenantID := c.String("tenantID")
@@ -59,7 +59,15 @@ func Comments(c *cli.Context) error {
 	}
 
 	// Create the processor that will write these entries out.
-	if err := pipeline.NewFileWriter(folder, pipeline.MergeTaskWriterOutputPipelines(pipeline.FanWritingProcessors(pipeline.NewFileReader(commentsFileName), ProcessComments(tenantID, users)))); err != nil {
+	if err := pipeline.NewFileWriter(
+		folder,
+		pipeline.MergeTaskWriterOutputPipelines(
+			pipeline.FanWritingProcessors(
+				pipeline.NewFileReader(commentsFileName),
+				ProcessComments(tenantID, users),
+			),
+		),
+	); err != nil {
 		logrus.WithError(err).Error("could not process comments and stories for writing")
 		return err
 	}
@@ -76,14 +84,24 @@ func HandleUsers(tenantID, folder, usersFileName string) (map[string]string, err
 	// Process the users file first because we need to de-duplicate users as
 	// they are parsed because LiveFyre did not lowercase email addresses,
 	// causing multiple users to be created for each email address variation.
-	users, err := pipeline.NewMapAggregator(pipeline.MergeTaskAggregatorOutputPipelines(pipeline.FanAggregatingProcessor(pipeline.NewFileReader(usersFileName), ProcessUsersMap())))
+	users, err := pipeline.NewMapAggregator(
+		pipeline.MergeTaskAggregatorOutputPipelines(
+			pipeline.FanAggregatingProcessor(
+				pipeline.NewFileReader(usersFileName),
+				ProcessUsersMap(),
+			),
+		),
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not aggregate users")
 	}
 
 	logrus.WithField("users", len(users["id"])).Info("loaded users")
 
-	if err := pipeline.NewFileWriter(folder, ProcessUsers(tenantID, users)); err != nil {
+	if err := pipeline.NewFileWriter(
+		folder,
+		ProcessUsers(tenantID, users),
+	); err != nil {
 		return nil, errors.Wrap(err, "could not write out users")
 	}
 

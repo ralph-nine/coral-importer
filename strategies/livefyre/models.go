@@ -111,7 +111,9 @@ func TranslateUser(tenantID string, in *User, now time.Time) *coral.User {
 		ID:   in.ID,
 		Type: "sso",
 	}
-	profile.DastIssuedAt.Time = now
+	profile.LastIssuedAt = &coral.Time{
+		Time: now,
+	}
 
 	user.Profiles = append(user.Profiles, profile)
 
