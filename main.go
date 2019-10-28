@@ -37,12 +37,12 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:     "comments",
-					Usage:    "newline seperated JSON input file containing comments",
+					Usage:    "newline separated JSON input file containing comments",
 					Required: true,
 				},
 				cli.StringFlag{
 					Name:     "users",
-					Usage:    "newline seperated JSON input file containing users",
+					Usage:    "newline separated JSON input file containing users",
 					Required: true,
 				},
 				cli.StringFlag{
@@ -63,7 +63,7 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:     "input",
-					Usage:    "folder where the output from mongoexport is located, seperated into collection named JSON files",
+					Usage:    "folder where the output from mongoexport is located, separated into collection named JSON files",
 					Required: true,
 				},
 				cli.StringFlag{
@@ -74,6 +74,7 @@ func main() {
 			},
 		},
 	}
+
 	if err := app.Run(os.Args); err != nil {
 		logrus.WithError(err).Fatal()
 	}

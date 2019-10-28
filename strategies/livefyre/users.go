@@ -13,7 +13,6 @@ import (
 
 func ProcessUsersMap() pipeline.AggregatingProcessor {
 	return func(writer pipeline.AggregationWriter, input *pipeline.TaskReaderInput) error {
-
 		// Parse the User from the file.
 		var in User
 		if err := easyjson.Unmarshal([]byte(input.Input), &in); err != nil {
@@ -78,7 +77,6 @@ func ProcessUsers(tenantID string, users map[string]map[string][]string) <-chan 
 				Document:   doc,
 			}
 		}
-
 	}()
 	return out
 }

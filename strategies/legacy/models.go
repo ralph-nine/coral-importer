@@ -23,7 +23,9 @@ type Action struct {
 func TranslateCommentAction(tenantID string, action *Action) *coral.CommentAction {
 	commentAction := coral.NewCommentAction(tenantID)
 	commentAction.ID = action.ID
-	if action.ActionType == "FLAG" {
+
+	switch action.ActionType {
+	case "FLAG":
 		commentAction.ActionType = "FLAG"
 		switch action.GroupID {
 		case "BANNED_WORD":
@@ -52,11 +54,12 @@ func TranslateCommentAction(tenantID string, action *Action) *coral.CommentActio
 				commentAction.AdditionalDetails = message
 			}
 		}
-	} else if action.ActionType == "DONTAGREE" {
+	case "DONTAGREE":
 		commentAction.ActionType = "DONT_AGREE"
-	} else {
+	default:
 		commentAction.ActionType = "REACTION"
 	}
+
 	commentAction.CommentID = action.ItemID
 	commentAction.UserID = action.UserID
 	commentAction.CreatedAt.Time = action.CreatedAt.Time
@@ -109,10 +112,12 @@ func TranslateCommentStatus(status string) string {
 func TranslateComment(tenantID string, in *Comment) *coral.Comment {
 	comment := coral.NewComment(tenantID)
 	comment.ID = in.ID
+
 	if in.ParentID != nil {
 		comment.ParentID = *in.ParentID
 		comment.ParentRevisionID = *in.ParentID
 	}
+
 	comment.AuthorID = in.AuthorID
 	// comment.Tags
 	comment.CreatedAt.Time = in.CreatedAt.Time
@@ -130,6 +135,7 @@ func TranslateComment(tenantID string, in *Comment) *coral.Comment {
 
 		comment.Tags = append(comment.Tags, commentTag)
 	}
+
 	if in.DeletedAt == nil {
 		revisionLength := len(in.BodyHistory)
 
@@ -182,21 +188,27 @@ func TranslateAsset(tenantID string, asset *Asset) *coral.Story {
 	story := coral.NewStory(tenantID)
 	story.ID = asset.ID
 	story.URL = asset.URL
+
 	if asset.Title != nil {
 		story.Metadata.Title = *asset.Title
 	}
+
 	if asset.Author != nil {
 		story.Metadata.Author = *asset.Author
 	}
+
 	if asset.Description != nil {
 		story.Metadata.Description = *asset.Description
 	}
+
 	if asset.Image != nil {
 		story.Metadata.Image = *asset.Image
 	}
+
 	if asset.Section != nil {
 		story.Metadata.Section = *asset.Section
 	}
+
 	if asset.PublicationDate != nil {
 		story.Metadata.PublishedAt = asset.PublicationDate
 	}
@@ -256,8 +268,6 @@ func TranslateUser(tenantID string, in *User) *coral.User {
 			CreatedAt: user.CreatedAt,
 		}
 	}
-	// TODO: status.suspension
-	// TODO: status.banned
 	user.Profiles = make([]coral.UserProfile, len(in.Profiles))
 	for i, profile := range in.Profiles {
 		switch profile.Provider {
@@ -269,23 +279,21 @@ func TranslateUser(tenantID string, in *User) *coral.User {
 				PasswordID: in.ID,
 			}
 			user.Email = profile.ID
-			break
 		case "facebook":
 			user.Profiles[i] = coral.UserProfile{
 				ID:   profile.ID,
 				Type: "facebook",
 			}
-			break
 		case "google":
 			user.Profiles[i] = coral.UserProfile{
 				ID:   profile.ID,
 				Type: "google",
 			}
-			break
 		default:
 			panic(errors.Errorf("unsupported profile provider: %s: %v", profile.Provider, in.ID))
 		}
 	}
+
 	for _, token := range in.Tokens {
 		if token.Active {
 			user.Tokens = append(user.Tokens, coral.UserToken{
@@ -295,19 +303,24 @@ func TranslateUser(tenantID string, in *User) *coral.User {
 			})
 		}
 	}
+
 	if in.Metadata != nil && in.Metadata.Notifications != nil && in.Metadata.Notifications.Settings != nil {
 		if in.Metadata.Notifications.Settings.OnReply != nil {
 			user.Notifications.OnReply = *in.Metadata.Notifications.Settings.OnReply
 		}
+
 		if in.Metadata.Notifications.Settings.OnFeatured != nil {
 			user.Notifications.OnFeatured = *in.Metadata.Notifications.Settings.OnFeatured
 		}
+
 		if in.Metadata.Notifications.Settings.OnStaffReply != nil {
 			user.Notifications.OnStaffReplies = *in.Metadata.Notifications.Settings.OnStaffReply
 		}
+
 		if in.Metadata.Notifications.Settings.OnModeration != nil {
 			user.Notifications.OnModeration = *in.Metadata.Notifications.Settings.OnModeration
 		}
+
 		if in.Metadata.Notifications.Settings.DigestFrequency != nil {
 			// Sometimes it seems the digestFrequency is `false` instead of a
 			// string, this is a mitigation for that.

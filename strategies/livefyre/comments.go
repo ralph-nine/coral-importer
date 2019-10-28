@@ -11,7 +11,6 @@ import (
 
 func ProcessComments(tenantID string, authorIDs map[string]string) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, n *pipeline.TaskReaderInput) error {
-
 		// Parse the Story from the file.
 		var in Story
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
@@ -39,7 +38,7 @@ func ProcessComments(tenantID string, authorIDs map[string]string) pipeline.Writ
 		r := common.NewReconstructor()
 
 		// Translate the comments.
-		for _, inc := range in.Comments {
+		for i, inc := range in.Comments {
 			if inc.AuthorID == "" {
 				logrus.WithFields(logrus.Fields{
 					"storyID":   story.ID,
@@ -68,7 +67,7 @@ func ProcessComments(tenantID string, authorIDs map[string]string) pipeline.Writ
 			inc.AuthorID = authorID
 
 			// Translate the Comment to a coral.Comment.
-			comment := TranslateComment(tenantID, &inc)
+			comment := TranslateComment(tenantID, &in.Comments[i])
 			comment.StoryID = story.ID
 
 			// Check the comment to ensure we're validated.

@@ -27,7 +27,9 @@ func MergeTaskAggregatorOutputPipelines(cs []<-chan TaskAggregatorOutput) <-chan
 		}
 		wg.Done()
 	}
+
 	wg.Add(len(cs))
+
 	for _, c := range cs {
 		go output(c)
 	}

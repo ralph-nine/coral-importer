@@ -80,7 +80,6 @@ func Import(c *cli.Context) error {
 }
 
 func HandleUsers(tenantID, folder, usersFileName string) (map[string]string, error) {
-
 	// Process the users file first because we need to de-duplicate users as
 	// they are parsed because LiveFyre did not lowercase email addresses,
 	// causing multiple users to be created for each email address variation.

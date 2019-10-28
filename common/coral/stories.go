@@ -75,23 +75,20 @@ func (s *Story) IncrementCommentCounts(status string) {
 		s.CommentCounts.Status.None++
 		s.CommentCounts.ModerationQueue.Total++
 		s.CommentCounts.ModerationQueue.Queues.Unmoderated++
-		break
 	case "PREMOD":
 		s.CommentCounts.Status.Premod++
 		s.CommentCounts.ModerationQueue.Total++
 		s.CommentCounts.ModerationQueue.Queues.Pending++
 		s.CommentCounts.ModerationQueue.Queues.Unmoderated++
-		break
 	case "SYSTEM_WITHHELD":
 		s.CommentCounts.Status.SystemWithheld++
 		s.CommentCounts.ModerationQueue.Total++
 		s.CommentCounts.ModerationQueue.Queues.Pending++
 		s.CommentCounts.ModerationQueue.Queues.Unmoderated++
-		break
 	}
 }
 
-// NewStory will return an initalized Story.
+// NewStory will return an initialized Story.
 func NewStory(tenantID string) *Story {
 	return &Story{
 		TenantID:      tenantID,

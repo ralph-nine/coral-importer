@@ -88,7 +88,6 @@ func Import(c *cli.Context) error {
 
 func ProcessUsers(tenantID string) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, n *pipeline.TaskReaderInput) error {
-
 		// Parse the user from the file.
 		var in User
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
@@ -152,6 +151,10 @@ func HandleNonUsers(tenantID, input, output string) error {
 			),
 		),
 	)
+	if err != nil {
+		logrus.WithError(err).Error("could not process action counts")
+		return err
+	}
 
 	logrus.Debug("finished calculating comment action counts")
 
@@ -168,7 +171,7 @@ func HandleNonUsers(tenantID, input, output string) error {
 		}
 	}
 
-	logrus.WithField("took", time.Now().Sub(startedReconstructionAt).String()).Debug("finished family reconstruction")
+	logrus.WithField("took", time.Since(startedReconstructionAt).String()).Debug("finished family reconstruction")
 
 	// Delete the reference to the parentID map that we don't need any more.
 	delete(commentMap, "parentID")
@@ -196,6 +199,10 @@ func HandleNonUsers(tenantID, input, output string) error {
 			),
 		),
 	)
+	if err != nil {
+		logrus.WithError(err).Error("could not process status counts")
+		return err
+	}
 
 	// Walk across all the comment's status maps so we can determine how many
 	// comments should be in the reported queue in each story.
@@ -250,7 +257,6 @@ func HandleNonUsers(tenantID, input, output string) error {
 
 func ProcessStories(tenantID string, statusCounts, actionCounts map[string]map[string]int, reportedMap map[string]int) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, n *pipeline.TaskReaderInput) error {
-
 		// Parse the asset from the file.
 		var in Asset
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
@@ -298,7 +304,6 @@ func ProcessStories(tenantID string, statusCounts, actionCounts map[string]map[s
 
 func ProcessCommentStatusMap() pipeline.SummerProcessor {
 	return func(writer pipeline.SummerWriter, n *pipeline.TaskReaderInput) error {
-
 		// Parse the comment from the file.
 		var in Comment
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
@@ -317,7 +322,6 @@ func ProcessCommentStatusMap() pipeline.SummerProcessor {
 
 func ProcessComments(tenantID string, actionCounts map[string]map[string]int, r *common.Reconstructor) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, n *pipeline.TaskReaderInput) error {
-
 		// Parse the Comment from the file.
 		var in Comment
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
@@ -357,7 +361,6 @@ func ProcessComments(tenantID string, actionCounts map[string]map[string]int, r 
 
 func ProcessActionCounts() pipeline.SummerProcessor {
 	return func(writer pipeline.SummerWriter, n *pipeline.TaskReaderInput) error {
-
 		// Parse the comment actions.
 		var in coral.CommentAction
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
@@ -378,7 +381,6 @@ func ProcessActionCounts() pipeline.SummerProcessor {
 
 func ProcessCommentMap() pipeline.AggregatingProcessor {
 	return func(writer pipeline.AggregationWriter, input *pipeline.TaskReaderInput) error {
-
 		// Parse the comment from the file.
 		var in Comment
 		if err := easyjson.Unmarshal([]byte(input.Input), &in); err != nil {
@@ -406,7 +408,6 @@ func ProcessCommentMap() pipeline.AggregatingProcessor {
 
 func ProcessCommentActions(tenantID string, comments map[string][]string) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, n *pipeline.TaskReaderInput) error {
-
 		// Parse the Action from the file.
 		var in Action
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {

@@ -67,10 +67,12 @@ func NewFileWriter(folder string, input <-chan TaskWriterOutput) error {
 			if err != nil {
 				return errors.Wrap(err, "could not create file")
 			}
+			//nolint:staticcheck
 			defer f.Close()
 
 			// Wrap this file in a buffered writer.
 			writer = bufio.NewWriter(f)
+			//nolint:staticcheck
 			defer writer.Flush()
 
 			// Link the writer to the map of writers.
@@ -78,8 +80,13 @@ func NewFileWriter(folder string, input <-chan TaskWriterOutput) error {
 		}
 
 		// Write the document out.
-		writer.Write(task.Document)
-		writer.WriteString("\n")
+		if _, err := writer.Write(task.Document); err != nil {
+			return errors.Wrap(err, "could not write")
+		}
+
+		if _, err := writer.WriteString("\n"); err != nil {
+			return errors.Wrap(err, "could not write")
+		}
 	}
 
 	return nil

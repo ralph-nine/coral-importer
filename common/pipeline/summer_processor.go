@@ -26,7 +26,7 @@ func HandleSummerProcessor(in <-chan TaskReaderInput, process SummerProcessor) <
 		for n := range in {
 			if n.Error != nil {
 				out <- TaskSummerOutput{
-					Error: errors.Wrap(n.Error, "error occured on stack"),
+					Error: errors.Wrap(n.Error, "error occurred on stack"),
 				}
 				return
 			}

@@ -11,7 +11,7 @@ import (
 // import file.
 type CollectionWriter func(collection string, doc easyjson.Marshaler) error
 
-// WritingProcessor is the actual processor that recieves a line.
+// WritingProcessor is the actual processor that receives a line.
 type WritingProcessor func(writer CollectionWriter, input *TaskReaderInput) error
 
 // HandleWritingProcessor will wrap a Processor around a fanning input queue and
