@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -10,10 +11,17 @@ import (
 	"gitlab.com/coralproject/coral-importer/strategies/livefyre"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "coral-importer"
 	app.Usage = "imports comment exports from other providers into Coral"
+	app.Version = fmt.Sprintf("%v, commit %v, built at %v", version, commit, date)
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:  "quiet",
