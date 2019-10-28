@@ -2,6 +2,9 @@
 
 ## Installation
 
+You can visit the [Releases](releases) page for the most recent binary release
+of the application.
+
 ```sh
 # Install the coral-importer.
 go install .
