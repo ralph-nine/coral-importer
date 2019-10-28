@@ -2,7 +2,7 @@
 
 ## Installation
 
-You can visit the [Releases](releases) page for the most recent binary release
+You can visit the [Releases](https://gitlab.com/coralproject/coral-importer/-/releases) page for the most recent binary release
 of the application.
 
 ```sh
