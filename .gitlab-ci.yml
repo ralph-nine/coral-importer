@@ -3,9 +3,9 @@ stages:
   - release
 
 variables:
-  GO111MODULE: on
-  GOLANGCI_LINT_VERSION: v1.21.0
-  GORELEASER_IMAGE: goreleaser/goreleaser:latest
+  GO111MODULE: "on"
+  GOLANGCI_LINT_VERSION: "v1.21.0"
+  GORELEASER_IMAGE: "goreleaser/goreleaser:latest"
 
 test:
   image: golang:latest
