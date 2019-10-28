@@ -20,6 +20,7 @@ test:
 release:
   stage: release
   script:
+    - go get -u github.com/mailru/easyjson/easyjson@v0.7.0
     - curl -sL https://git.io/goreleaser | bash
   only:
     - tags
