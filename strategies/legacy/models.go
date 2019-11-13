@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
 	"gitlab.com/coralproject/coral-importer/common/coral"
 )
 
@@ -119,7 +120,6 @@ func TranslateComment(tenantID string, in *Comment) *coral.Comment {
 	}
 
 	comment.AuthorID = in.AuthorID
-	// comment.Tags
 	comment.CreatedAt.Time = in.CreatedAt.Time
 	comment.StoryID = in.AssetID
 	comment.Status = TranslateCommentStatus(in.Status)
@@ -240,7 +240,8 @@ type UserNotifications struct {
 }
 
 type UserMetadata struct {
-	Notifications *UserNotifications `json:"notifications"`
+	Notifications       *UserNotifications `json:"notifications"`
+	LastAccountDownload *coral.Time        `json:"lastAccountDownload"`
 }
 
 type User struct {
@@ -251,8 +252,61 @@ type User struct {
 	IgnoredUsers []string      `json:"ignoresUsers"`
 	Profiles     []UserProfile `json:"profiles"`
 	Tokens       []UserToken   `json:"tokens"`
-	CreatedAt    coral.Time    `json:"created_at"`
-	Metadata     *UserMetadata `json:"metadata"`
+	Status       struct {
+		Username struct {
+			Status  string `json:"status"`
+			History []struct {
+				AssignedBy *string    `json:"assigned_by"`
+				Status     string     `json:"status"`
+				CreatedAt  coral.Time `json:"created_at"`
+			} `json:"history"`
+		} `json:"username"`
+		Banned struct {
+			Status  bool `json:"status"`
+			History []struct {
+				AssignedBy *string    `json:"assigned_by"`
+				Message    string     `json:"message"`
+				Status     bool       `json:"status"`
+				CreatedAt  coral.Time `json:"created_at"`
+			} `json:"history"`
+		} `json:"banned"`
+		Suspension struct {
+			Until   *coral.Time `json:"until"`
+			History []struct {
+				AssignedBy *string    `json:"assigned_by"`
+				Message    string     `json:"message"`
+				Until      coral.Time `json:"until"`
+				CreatedAt  coral.Time `json:"created_at"`
+			} `json:"history"`
+		} `json:"suspension"`
+	} `json:"status"`
+	CreatedAt coral.Time    `json:"created_at"`
+	Metadata  *UserMetadata `json:"metadata"`
+}
+
+func TranslateUserProfile(user *coral.User, in *User, profile UserProfile) coral.UserProfile {
+	switch profile.Provider {
+	case "local":
+		user.Email = profile.ID
+		return coral.UserProfile{
+			ID:         profile.ID,
+			Type:       "local",
+			Password:   in.Password,
+			PasswordID: uuid.NewV4().String(),
+		}
+	case "facebook":
+		return coral.UserProfile{
+			ID:   profile.ID,
+			Type: "facebook",
+		}
+	case "google":
+		return coral.UserProfile{
+			ID:   profile.ID,
+			Type: "google",
+		}
+	default:
+		panic(errors.Errorf("unsupported profile provider: %s: %v", profile.Provider, in.ID))
+	}
 }
 
 func TranslateUser(tenantID string, in *User) *coral.User {
@@ -270,28 +324,56 @@ func TranslateUser(tenantID string, in *User) *coral.User {
 	}
 	user.Profiles = make([]coral.UserProfile, len(in.Profiles))
 	for i, profile := range in.Profiles {
-		switch profile.Provider {
-		case "local":
-			user.Profiles[i] = coral.UserProfile{
-				ID:         profile.ID,
-				Type:       "local",
-				Password:   in.Password,
-				PasswordID: in.ID,
-			}
-			user.Email = profile.ID
-		case "facebook":
-			user.Profiles[i] = coral.UserProfile{
-				ID:   profile.ID,
-				Type: "facebook",
-			}
-		case "google":
-			user.Profiles[i] = coral.UserProfile{
-				ID:   profile.ID,
-				Type: "google",
-			}
-		default:
-			panic(errors.Errorf("unsupported profile provider: %s: %v", profile.Provider, in.ID))
+		user.Profiles[i] = TranslateUserProfile(user, in, profile)
+	}
+
+	user.Status.SuspensionStatus.History = make([]coral.UserSuspensionStatusHistory, len(in.Status.Suspension.History))
+	for i, history := range in.Status.Suspension.History {
+		user.Status.SuspensionStatus.History[i] = coral.UserSuspensionStatusHistory{
+			ID: uuid.NewV1().String(),
+			From: coral.TimeRange{
+				From: history.CreatedAt,
+				To:   history.Until,
+			},
+			Message:   history.Message,
+			CreatedAt: history.CreatedAt,
 		}
+
+		if history.AssignedBy != nil {
+			user.Status.SuspensionStatus.History[i].CreatedBy = *history.AssignedBy
+		}
+	}
+
+	user.Status.BanStatus.History = make([]coral.UserBanStatusHistory, len(in.Status.Banned.History))
+	for i, history := range in.Status.Banned.History {
+		user.Status.BanStatus.History[i] = coral.UserBanStatusHistory{
+			ID:        uuid.NewV1().String(),
+			Message:   history.Message,
+			Active:    history.Status,
+			CreatedAt: history.CreatedAt,
+		}
+
+		if history.AssignedBy != nil {
+			user.Status.BanStatus.History[i].CreatedBy = *history.AssignedBy
+		}
+	}
+
+	if len(in.Status.Username.History) > 0 {
+		user.Status.UsernameStatus.History = make([]coral.UserUsernameStatusHistory, len(in.Status.Username.History))
+		for i, history := range in.Status.Username.History {
+			user.Status.UsernameStatus.History[i] = coral.UserUsernameStatusHistory{
+				ID:        uuid.NewV1().String(),
+				Username:  "",
+				CreatedAt: history.CreatedAt,
+			}
+
+			if history.AssignedBy != nil {
+				user.Status.UsernameStatus.History[i].CreatedBy = *history.AssignedBy
+			}
+		}
+
+		// The last username status should be the most recent username.
+		user.Status.UsernameStatus.History[len(user.Status.UsernameStatus.History)-1].Username = user.Username
 	}
 
 	for _, token := range in.Tokens {
@@ -304,34 +386,39 @@ func TranslateUser(tenantID string, in *User) *coral.User {
 		}
 	}
 
-	if in.Metadata != nil && in.Metadata.Notifications != nil && in.Metadata.Notifications.Settings != nil {
-		if in.Metadata.Notifications.Settings.OnReply != nil {
-			user.Notifications.OnReply = *in.Metadata.Notifications.Settings.OnReply
-		}
+	if in.Metadata != nil {
+		if in.Metadata.Notifications != nil && in.Metadata.Notifications.Settings != nil {
+			if in.Metadata.Notifications.Settings.OnReply != nil {
+				user.Notifications.OnReply = *in.Metadata.Notifications.Settings.OnReply
+			}
 
-		if in.Metadata.Notifications.Settings.OnFeatured != nil {
-			user.Notifications.OnFeatured = *in.Metadata.Notifications.Settings.OnFeatured
-		}
+			if in.Metadata.Notifications.Settings.OnFeatured != nil {
+				user.Notifications.OnFeatured = *in.Metadata.Notifications.Settings.OnFeatured
+			}
 
-		if in.Metadata.Notifications.Settings.OnStaffReply != nil {
-			user.Notifications.OnStaffReplies = *in.Metadata.Notifications.Settings.OnStaffReply
-		}
+			if in.Metadata.Notifications.Settings.OnStaffReply != nil {
+				user.Notifications.OnStaffReplies = *in.Metadata.Notifications.Settings.OnStaffReply
+			}
 
-		if in.Metadata.Notifications.Settings.OnModeration != nil {
-			user.Notifications.OnModeration = *in.Metadata.Notifications.Settings.OnModeration
-		}
+			if in.Metadata.Notifications.Settings.OnModeration != nil {
+				user.Notifications.OnModeration = *in.Metadata.Notifications.Settings.OnModeration
+			}
 
-		if in.Metadata.Notifications.Settings.DigestFrequency != nil {
-			// Sometimes it seems the digestFrequency is `false` instead of a
-			// string, this is a mitigation for that.
-			if digestFrequency, ok := in.Metadata.Notifications.Settings.DigestFrequency.(string); ok {
-				user.Notifications.DigestFrequency = digestFrequency
+			if in.Metadata.Notifications.Settings.DigestFrequency != nil {
+				// Sometimes it seems the digestFrequency is `false` instead of a
+				// string, this is a mitigation for that.
+				if digestFrequency, ok := in.Metadata.Notifications.Settings.DigestFrequency.(string); ok {
+					user.Notifications.DigestFrequency = digestFrequency
+				} else {
+					user.Notifications.DigestFrequency = "NONE"
+				}
 			} else {
 				user.Notifications.DigestFrequency = "NONE"
 			}
-		} else {
-			user.Notifications.DigestFrequency = "NONE"
 		}
+
+		// Assign the last downloaded at time stamp.
+		user.LastDownloadedAt = in.Metadata.LastAccountDownload
 	}
 
 	return user

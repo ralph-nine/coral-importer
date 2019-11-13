@@ -23,13 +23,36 @@ func NewUserNotifications() UserNotifications {
 	}
 }
 
+type TimeRange struct {
+	From Time `json:"from"`
+	To   Time `json:"to"`
+}
+
+type UserSuspensionStatusHistory struct {
+	ID         string    `json:"id"`
+	From       TimeRange `json:"from"`
+	CreatedBy  string    `json:"createdBy,omitempty"`
+	CreatedAt  Time      `json:"createdAt"`
+	ModifiedBy *string   `json:"modifiedBy,omitempty"`
+	ModifiedAt *Time     `json:"modifiedAt,omitempty"`
+	Message    string    `json:"message"`
+}
+
 type UserSuspensionStatus struct {
-	History []string `json:"history"`
+	History []UserSuspensionStatusHistory `json:"history"`
+}
+
+type UserBanStatusHistory struct {
+	ID        string `json:"id"`
+	Active    bool   `json:"active"`
+	CreatedBy string `json:"createdBy,omitempty"`
+	CreatedAt Time   `json:"createdAt"`
+	Message   string `json:"message,omitempty"`
 }
 
 type UserBanStatus struct {
-	Active  bool     `json:"active"`
-	History []string `json:"history"`
+	Active  bool                   `json:"active"`
+	History []UserBanStatusHistory `json:"history"`
 }
 
 type UserUsernameStatusHistory struct {
@@ -64,10 +87,10 @@ type UserStatus struct {
 func NewUserStatus() UserStatus {
 	return UserStatus{
 		SuspensionStatus: UserSuspensionStatus{
-			History: []string{},
+			History: []UserSuspensionStatusHistory{},
 		},
 		BanStatus: UserBanStatus{
-			History: []string{},
+			History: []UserBanStatusHistory{},
 		},
 		UsernameStatus: NewUserUsernameStatus(),
 		PremodStatus: UserPremodStatus{
@@ -88,18 +111,19 @@ type UserToken struct {
 }
 
 type User struct {
-	TenantID      string            `json:"tenantID" validate:"required"`
-	ID            string            `json:"id" conform:"trim" validate:"required"`
-	Username      string            `json:"username" validate:"required"`
-	Email         string            `json:"email,omitempty" validate:"email"`
-	Profiles      []UserProfile     `json:"profiles,omitempty"`
-	Role          string            `json:"role" validate:"required,oneof=COMMENTER STAFF MODERATOR ADMIN"`
-	Notifications UserNotifications `json:"notifications"`
-	Status        UserStatus        `json:"status"`
-	CreatedAt     Time              `json:"createdAt" validate:"required"`
-	IgnoredUsers  []IgnoredUser     `json:"ignoredUsers"`
-	Tokens        []UserToken       `json:"tokens"`
-	Imported      bool              `json:"imported"`
+	TenantID         string            `json:"tenantID" validate:"required"`
+	ID               string            `json:"id" conform:"trim" validate:"required"`
+	Username         string            `json:"username" validate:"required"`
+	Email            string            `json:"email,omitempty" validate:"email"`
+	Profiles         []UserProfile     `json:"profiles,omitempty"`
+	Role             string            `json:"role" validate:"required,oneof=COMMENTER STAFF MODERATOR ADMIN"`
+	Notifications    UserNotifications `json:"notifications"`
+	Status           UserStatus        `json:"status"`
+	CreatedAt        Time              `json:"createdAt" validate:"required"`
+	IgnoredUsers     []IgnoredUser     `json:"ignoredUsers"`
+	Tokens           []UserToken       `json:"tokens"`
+	LastDownloadedAt *Time             `json:"lastDownloadedAt"`
+	Imported         bool              `json:"imported"`
 }
 
 func NewUser(tenantID string) *User {

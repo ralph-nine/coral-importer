@@ -1,23 +1,17 @@
 linters:
   enable-all: true
-  disable: [
-    "lll",
-    "gochecknoglobals",
-    "funlen",
-    "goconst",
-    "wsl"
-  ]
+  disable: ["lll", "gochecknoglobals", "funlen", "goconst", "gocognit", "wsl"]
 
 run:
   skip-files:
     - ".*_easyjson\\.go"
 
 issues:
-    exclude-use-default: true
-    exclude-rules:
-        - text: "Using a reference for the variable on range scope .*"
-          linters:
-            - scopelint
-        - text: "ST1016: .*"
-          linters:
-            - stylecheck
+  exclude-use-default: true
+  exclude-rules:
+    - text: "Using a reference for the variable on range scope .*"
+      linters:
+        - scopelint
+    - text: "ST1016: .*"
+      linters:
+        - stylecheck
