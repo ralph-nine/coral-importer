@@ -1,6 +1,8 @@
 //go:generate easyjson -all commentActions.go
 package coral
 
+import "time"
+
 // CommentAction is the base Coral Comment Action that represents an action
 // against a Comment.
 type CommentAction struct {
@@ -15,14 +17,15 @@ type CommentAction struct {
 	UserID            *string                `json:"userID" validate:"required"`
 	CreatedAt         Time                   `json:"createdAt"`
 	Metadata          map[string]interface{} `json:"metadata"`
-	Imported          bool                   `json:"imported"`
+	ImportedAt        Time                   `json:"importedAt"`
+	Extra             map[string]interface{} `json:"extra"`
 }
 
 // NewCommentAction will return an initialized CommentAction.
 func NewCommentAction(tenantID string) *CommentAction {
 	return &CommentAction{
-		TenantID: tenantID,
-		Metadata: map[string]interface{}{},
-		Imported: true,
+		TenantID:   tenantID,
+		Metadata:   map[string]interface{}{},
+		ImportedAt: Time{Time: time.Now()},
 	}
 }

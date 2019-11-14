@@ -362,8 +362,36 @@ func easyjsonE08b5de9DecodeGitlabComCoralprojectCoralImporterCommonCoral3(in *jl
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.CreatedAt).UnmarshalJSON(data))
 			}
-		case "imported":
-			out.Imported = bool(in.Bool())
+		case "importedAt":
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.ImportedAt).UnmarshalJSON(data))
+			}
+		case "extra":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				in.Delim('{')
+				if !in.IsDelim('}') {
+					out.Extra = make(map[string]interface{})
+				} else {
+					out.Extra = nil
+				}
+				for !in.IsDelim('}') {
+					key := string(in.String())
+					in.WantColon()
+					var v3 interface{}
+					if m, ok := v3.(easyjson.Unmarshaler); ok {
+						m.UnmarshalEasyJSON(in)
+					} else if m, ok := v3.(json.Unmarshaler); ok {
+						_ = m.UnmarshalJSON(in.Raw())
+					} else {
+						v3 = in.Interface()
+					}
+					(out.Extra)[key] = v3
+					in.WantComma()
+				}
+				in.Delim('}')
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -414,9 +442,36 @@ func easyjsonE08b5de9EncodeGitlabComCoralprojectCoralImporterCommonCoral3(out *j
 		out.Raw((in.CreatedAt).MarshalJSON())
 	}
 	{
-		const prefix string = ",\"imported\":"
+		const prefix string = ",\"importedAt\":"
 		out.RawString(prefix)
-		out.Bool(bool(in.Imported))
+		out.Raw((in.ImportedAt).MarshalJSON())
+	}
+	{
+		const prefix string = ",\"extra\":"
+		out.RawString(prefix)
+		if in.Extra == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+			out.RawString(`null`)
+		} else {
+			out.RawByte('{')
+			v4First := true
+			for v4Name, v4Value := range in.Extra {
+				if v4First {
+					v4First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v4Name))
+				out.RawByte(':')
+				if m, ok := v4Value.(easyjson.Marshaler); ok {
+					m.MarshalEasyJSON(out)
+				} else if m, ok := v4Value.(json.Marshaler); ok {
+					out.Raw(m.MarshalJSON())
+				} else {
+					out.Raw(json.Marshal(v4Value))
+				}
+			}
+			out.RawByte('}')
+		}
 	}
 	out.RawByte('}')
 }

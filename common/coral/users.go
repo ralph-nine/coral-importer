@@ -1,6 +1,8 @@
 //go:generate easyjson -all users.go
 package coral
 
+import "time"
+
 type UserProfile struct {
 	ID           string `json:"id"`
 	Type         string `json:"type"`
@@ -111,19 +113,20 @@ type UserToken struct {
 }
 
 type User struct {
-	TenantID         string            `json:"tenantID" validate:"required"`
-	ID               string            `json:"id" conform:"trim" validate:"required"`
-	Username         string            `json:"username" validate:"required"`
-	Email            string            `json:"email,omitempty" validate:"email"`
-	Profiles         []UserProfile     `json:"profiles,omitempty"`
-	Role             string            `json:"role" validate:"required,oneof=COMMENTER STAFF MODERATOR ADMIN"`
-	Notifications    UserNotifications `json:"notifications"`
-	Status           UserStatus        `json:"status"`
-	CreatedAt        Time              `json:"createdAt" validate:"required"`
-	IgnoredUsers     []IgnoredUser     `json:"ignoredUsers"`
-	Tokens           []UserToken       `json:"tokens"`
-	LastDownloadedAt *Time             `json:"lastDownloadedAt"`
-	Imported         bool              `json:"imported"`
+	TenantID         string                 `json:"tenantID" validate:"required"`
+	ID               string                 `json:"id" conform:"trim" validate:"required"`
+	Username         string                 `json:"username" validate:"required"`
+	Email            string                 `json:"email,omitempty" validate:"email"`
+	Profiles         []UserProfile          `json:"profiles,omitempty"`
+	Role             string                 `json:"role" validate:"required,oneof=COMMENTER STAFF MODERATOR ADMIN"`
+	Notifications    UserNotifications      `json:"notifications"`
+	Status           UserStatus             `json:"status"`
+	CreatedAt        Time                   `json:"createdAt" validate:"required"`
+	IgnoredUsers     []IgnoredUser          `json:"ignoredUsers"`
+	Tokens           []UserToken            `json:"tokens"`
+	LastDownloadedAt *Time                  `json:"lastDownloadedAt"`
+	ImportedAt       Time                   `json:"importedAt"`
+	Extra            map[string]interface{} `json:"extra"`
 }
 
 func NewUser(tenantID string) *User {
@@ -134,6 +137,6 @@ func NewUser(tenantID string) *User {
 		Profiles:      []UserProfile{},
 		Tokens:        []UserToken{},
 		Role:          "COMMENTER",
-		Imported:      true,
+		ImportedAt:    Time{Time: time.Now()},
 	}
 }

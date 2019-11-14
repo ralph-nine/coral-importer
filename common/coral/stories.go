@@ -1,6 +1,8 @@
 //go:generate easyjson -all stories.go
 package coral
 
+import "time"
+
 type CommentModerationCountsPerQueue struct {
 	Unmoderated int `json:"unmoderated"`
 	Pending     int `json:"pending"`
@@ -53,14 +55,15 @@ type StoryMetadata struct {
 
 // Story is thye base Coral Story that is used in Coral.
 type Story struct {
-	TenantID      string             `json:"tenantID" validate:"required"`
-	ID            string             `json:"id" conform:"trim" validate:"required"`
-	URL           string             `json:"url" validate:"required,url"`
-	CommentCounts StoryCommentCounts `json:"commentCounts"`
-	Settings      StorySettings      `json:"settings"`
-	Metadata      StoryMetadata      `json:"metadata"`
-	CreatedAt     Time               `json:"createdAt" validate:"required"`
-	Imported      bool               `json:"imported"`
+	TenantID      string                 `json:"tenantID" validate:"required"`
+	ID            string                 `json:"id" conform:"trim" validate:"required"`
+	URL           string                 `json:"url" validate:"required,url"`
+	CommentCounts StoryCommentCounts     `json:"commentCounts"`
+	Settings      StorySettings          `json:"settings"`
+	Metadata      StoryMetadata          `json:"metadata"`
+	CreatedAt     Time                   `json:"createdAt" validate:"required"`
+	ImportedAt    Time                   `json:"importedAt"`
+	Extra         map[string]interface{} `json:"extra"`
 }
 
 func (s *Story) IncrementCommentCounts(status string) {
@@ -95,6 +98,6 @@ func NewStory(tenantID string) *Story {
 		CommentCounts: NewStoryCommentCounts(),
 		Settings:      StorySettings{},
 		Metadata:      StoryMetadata{},
-		Imported:      true,
+		ImportedAt:    Time{Time: time.Now()},
 	}
 }

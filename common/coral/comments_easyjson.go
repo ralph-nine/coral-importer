@@ -451,8 +451,36 @@ func easyjsonD09abad2DecodeGitlabComCoralprojectCoralImporterCommonCoral3(in *jl
 					in.AddError((*out.DeletedAt).UnmarshalJSON(data))
 				}
 			}
-		case "imported":
-			out.Imported = bool(in.Bool())
+		case "importedAt":
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.ImportedAt).UnmarshalJSON(data))
+			}
+		case "extra":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				in.Delim('{')
+				if !in.IsDelim('}') {
+					out.Extra = make(map[string]interface{})
+				} else {
+					out.Extra = nil
+				}
+				for !in.IsDelim('}') {
+					key := string(in.String())
+					in.WantColon()
+					var v8 interface{}
+					if m, ok := v8.(easyjson.Unmarshaler); ok {
+						m.UnmarshalEasyJSON(in)
+					} else if m, ok := v8.(json.Unmarshaler); ok {
+						_ = m.UnmarshalJSON(in.Raw())
+					} else {
+						v8 = in.Interface()
+					}
+					(out.Extra)[key] = v8
+					in.WantComma()
+				}
+				in.Delim('}')
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -484,11 +512,11 @@ func easyjsonD09abad2EncodeGitlabComCoralprojectCoralImporterCommonCoral3(out *j
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v8, v9 := range in.AncestorIDs {
-				if v8 > 0 {
+			for v9, v10 := range in.AncestorIDs {
+				if v9 > 0 {
 					out.RawByte(',')
 				}
-				out.String(string(v9))
+				out.String(string(v10))
 			}
 			out.RawByte(']')
 		}
@@ -520,11 +548,11 @@ func easyjsonD09abad2EncodeGitlabComCoralprojectCoralImporterCommonCoral3(out *j
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v10, v11 := range in.Revisions {
-				if v10 > 0 {
+			for v11, v12 := range in.Revisions {
+				if v11 > 0 {
 					out.RawByte(',')
 				}
-				(v11).MarshalEasyJSON(out)
+				(v12).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -541,16 +569,16 @@ func easyjsonD09abad2EncodeGitlabComCoralprojectCoralImporterCommonCoral3(out *j
 			out.RawString(`null`)
 		} else {
 			out.RawByte('{')
-			v12First := true
-			for v12Name, v12Value := range in.ActionCounts {
-				if v12First {
-					v12First = false
+			v13First := true
+			for v13Name, v13Value := range in.ActionCounts {
+				if v13First {
+					v13First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v12Name))
+				out.String(string(v13Name))
 				out.RawByte(':')
-				out.Int(int(v12Value))
+				out.Int(int(v13Value))
 			}
 			out.RawByte('}')
 		}
@@ -562,11 +590,11 @@ func easyjsonD09abad2EncodeGitlabComCoralprojectCoralImporterCommonCoral3(out *j
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v13, v14 := range in.ChildIDs {
-				if v13 > 0 {
+			for v14, v15 := range in.ChildIDs {
+				if v14 > 0 {
 					out.RawByte(',')
 				}
-				out.String(string(v14))
+				out.String(string(v15))
 			}
 			out.RawByte(']')
 		}
@@ -578,11 +606,11 @@ func easyjsonD09abad2EncodeGitlabComCoralprojectCoralImporterCommonCoral3(out *j
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v15, v16 := range in.Tags {
-				if v15 > 0 {
+			for v16, v17 := range in.Tags {
+				if v16 > 0 {
 					out.RawByte(',')
 				}
-				(v16).MarshalEasyJSON(out)
+				(v17).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -603,9 +631,36 @@ func easyjsonD09abad2EncodeGitlabComCoralprojectCoralImporterCommonCoral3(out *j
 		out.Raw((*in.DeletedAt).MarshalJSON())
 	}
 	{
-		const prefix string = ",\"imported\":"
+		const prefix string = ",\"importedAt\":"
 		out.RawString(prefix)
-		out.Bool(bool(in.Imported))
+		out.Raw((in.ImportedAt).MarshalJSON())
+	}
+	{
+		const prefix string = ",\"extra\":"
+		out.RawString(prefix)
+		if in.Extra == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+			out.RawString(`null`)
+		} else {
+			out.RawByte('{')
+			v18First := true
+			for v18Name, v18Value := range in.Extra {
+				if v18First {
+					v18First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v18Name))
+				out.RawByte(':')
+				if m, ok := v18Value.(easyjson.Marshaler); ok {
+					m.MarshalEasyJSON(out)
+				} else if m, ok := v18Value.(json.Marshaler); ok {
+					out.Raw(m.MarshalJSON())
+				} else {
+					out.Raw(json.Marshal(v18Value))
+				}
+			}
+			out.RawByte('}')
+		}
 	}
 	out.RawByte('}')
 }

@@ -91,9 +91,14 @@ type CommentTag struct {
 }
 
 type Comment struct {
-	ID          string               `json:"id"`
-	AssetID     string               `json:"asset_id"`
-	Status      string               `json:"status"`
+	ID            string `json:"id"`
+	AssetID       string `json:"asset_id"`
+	Status        string `json:"status"`
+	StatusHistory []struct {
+		AssignedBy *string    `json:"assigned_by"`
+		Type       string     `json:"type"`
+		CreatedAt  coral.Time `json:"created_at"`
+	} `json:"status_history"`
 	BodyHistory []CommentBodyHistory `json:"body_history"`
 	Tags        []CommentTag         `json:"tags"`
 	ParentID    *string              `json:"parent_id"`
@@ -159,6 +164,9 @@ func TranslateComment(tenantID string, in *Comment) *coral.Comment {
 	} else {
 		comment.DeletedAt = in.DeletedAt
 	}
+
+	// Attach extra data of the
+	comment.Extra["status_history"] = in.StatusHistory
 
 	return comment
 }

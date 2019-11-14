@@ -1690,6 +1690,41 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(i
 			out.AssetID = string(in.String())
 		case "status":
 			out.Status = string(in.String())
+		case "status_history":
+			if in.IsNull() {
+				in.Skip()
+				out.StatusHistory = nil
+			} else {
+				in.Delim('[')
+				if out.StatusHistory == nil {
+					if !in.IsDelim(']') {
+						out.StatusHistory = make([]struct {
+							AssignedBy *string    `json:"assigned_by"`
+							Type       string     `json:"type"`
+							CreatedAt  coral.Time `json:"created_at"`
+						}, 0, 1)
+					} else {
+						out.StatusHistory = []struct {
+							AssignedBy *string    `json:"assigned_by"`
+							Type       string     `json:"type"`
+							CreatedAt  coral.Time `json:"created_at"`
+						}{}
+					}
+				} else {
+					out.StatusHistory = (out.StatusHistory)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v19 struct {
+						AssignedBy *string    `json:"assigned_by"`
+						Type       string     `json:"type"`
+						CreatedAt  coral.Time `json:"created_at"`
+					}
+					easyjsonD2b7633eDecode8(in, &v19)
+					out.StatusHistory = append(out.StatusHistory, v19)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
 		case "body_history":
 			if in.IsNull() {
 				in.Skip()
@@ -1706,9 +1741,9 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(i
 					out.BodyHistory = (out.BodyHistory)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v19 CommentBodyHistory
-					(v19).UnmarshalEasyJSON(in)
-					out.BodyHistory = append(out.BodyHistory, v19)
+					var v20 CommentBodyHistory
+					(v20).UnmarshalEasyJSON(in)
+					out.BodyHistory = append(out.BodyHistory, v20)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1729,9 +1764,9 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(i
 					out.Tags = (out.Tags)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v20 CommentTag
-					(v20).UnmarshalEasyJSON(in)
-					out.Tags = append(out.Tags, v20)
+					var v21 CommentTag
+					(v21).UnmarshalEasyJSON(in)
+					out.Tags = append(out.Tags, v21)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1798,17 +1833,33 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(o
 		out.String(string(in.Status))
 	}
 	{
+		const prefix string = ",\"status_history\":"
+		out.RawString(prefix)
+		if in.StatusHistory == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v22, v23 := range in.StatusHistory {
+				if v22 > 0 {
+					out.RawByte(',')
+				}
+				easyjsonD2b7633eEncode8(out, v23)
+			}
+			out.RawByte(']')
+		}
+	}
+	{
 		const prefix string = ",\"body_history\":"
 		out.RawString(prefix)
 		if in.BodyHistory == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v21, v22 := range in.BodyHistory {
-				if v21 > 0 {
+			for v24, v25 := range in.BodyHistory {
+				if v24 > 0 {
 					out.RawByte(',')
 				}
-				(v22).MarshalEasyJSON(out)
+				(v25).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1820,11 +1871,11 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(o
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v23, v24 := range in.Tags {
-				if v23 > 0 {
+			for v26, v27 := range in.Tags {
+				if v26 > 0 {
 					out.RawByte(',')
 				}
-				(v24).MarshalEasyJSON(out)
+				(v27).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1887,6 +1938,84 @@ func (v *Comment) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Comment) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(l, v)
+}
+func easyjsonD2b7633eDecode8(in *jlexer.Lexer, out *struct {
+	AssignedBy *string    `json:"assigned_by"`
+	Type       string     `json:"type"`
+	CreatedAt  coral.Time `json:"created_at"`
+}) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "assigned_by":
+			if in.IsNull() {
+				in.Skip()
+				out.AssignedBy = nil
+			} else {
+				if out.AssignedBy == nil {
+					out.AssignedBy = new(string)
+				}
+				*out.AssignedBy = string(in.String())
+			}
+		case "type":
+			out.Type = string(in.String())
+		case "created_at":
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.CreatedAt).UnmarshalJSON(data))
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD2b7633eEncode8(out *jwriter.Writer, in struct {
+	AssignedBy *string    `json:"assigned_by"`
+	Type       string     `json:"type"`
+	CreatedAt  coral.Time `json:"created_at"`
+}) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"assigned_by\":"
+		out.RawString(prefix[1:])
+		if in.AssignedBy == nil {
+			out.RawString("null")
+		} else {
+			out.String(string(*in.AssignedBy))
+		}
+	}
+	{
+		const prefix string = ",\"type\":"
+		out.RawString(prefix)
+		out.String(string(in.Type))
+	}
+	{
+		const prefix string = ",\"created_at\":"
+		out.RawString(prefix)
+		out.Raw((in.CreatedAt).MarshalJSON())
+	}
+	out.RawByte('}')
 }
 func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy9(in *jlexer.Lexer, out *Asset) {
 	isTopLevel := in.IsStart()
@@ -2258,15 +2387,15 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy10(
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v25 interface{}
-					if m, ok := v25.(easyjson.Unmarshaler); ok {
+					var v28 interface{}
+					if m, ok := v28.(easyjson.Unmarshaler); ok {
 						m.UnmarshalEasyJSON(in)
-					} else if m, ok := v25.(json.Unmarshaler); ok {
+					} else if m, ok := v28.(json.Unmarshaler); ok {
 						_ = m.UnmarshalJSON(in.Raw())
 					} else {
-						v25 = in.Interface()
+						v28 = in.Interface()
 					}
-					(out.Metadata)[key] = v25
+					(out.Metadata)[key] = v28
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -2330,21 +2459,21 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLegacy10(
 			out.RawString(`null`)
 		} else {
 			out.RawByte('{')
-			v26First := true
-			for v26Name, v26Value := range in.Metadata {
-				if v26First {
-					v26First = false
+			v29First := true
+			for v29Name, v29Value := range in.Metadata {
+				if v29First {
+					v29First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v26Name))
+				out.String(string(v29Name))
 				out.RawByte(':')
-				if m, ok := v26Value.(easyjson.Marshaler); ok {
+				if m, ok := v29Value.(easyjson.Marshaler); ok {
 					m.MarshalEasyJSON(out)
-				} else if m, ok := v26Value.(json.Marshaler); ok {
+				} else if m, ok := v29Value.(json.Marshaler); ok {
 					out.Raw(m.MarshalJSON())
 				} else {
-					out.Raw(json.Marshal(v26Value))
+					out.Raw(json.Marshal(v29Value))
 				}
 			}
 			out.RawByte('}')
