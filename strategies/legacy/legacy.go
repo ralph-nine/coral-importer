@@ -18,7 +18,7 @@ import (
 // CurrentMigrationVersion is the version representing the most recent migration that
 // this strategy is designed to handle. This should be updated as revisions
 // are applied to this strategy for future versions.
-const CurrentMigrationVersion = 1574289134415
+const CurrentMigrationVersion int64 = 1574289134415
 
 var collections = []string{
 	"actions",
@@ -51,7 +51,7 @@ func Import(c *cli.Context) error {
 
 	if c.Bool("forceSkipMigrationCheck") {
 		logrus.Warn("skipping migration check")
-	} else if c.Int("migrationID") != CurrentMigrationVersion {
+	} else if c.Int64("migrationID") != CurrentMigrationVersion {
 		logrus.WithFields(logrus.Fields{
 			"migrationID":             c.Int("migrationID"),
 			"currentMigrationVersion": CurrentMigrationVersion,

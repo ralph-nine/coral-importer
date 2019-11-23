@@ -71,7 +71,7 @@ func main() {
 					Usage:    "ID of the Tenant to import for",
 					Required: true,
 				},
-				cli.IntFlag{
+				cli.Int64Flag{
 					Name:     "migrationID",
 					Usage:    "ID of the most recent migration associated with your installation",
 					Required: true,
