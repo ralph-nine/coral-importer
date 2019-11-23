@@ -36,6 +36,7 @@ func main() {
 	app.Commands = []cli.Command{
 		{
 			Name:   "livefyre",
+			Usage:  "a migrator designed to migrate data from the LiveFyre platform",
 			Action: livefyre.Import,
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -62,6 +63,7 @@ func main() {
 		},
 		{
 			Name:   "legacy",
+			Usage:  "a migrator designed to import data from previous versions of Coral",
 			Action: legacy.Import,
 			Flags: []cli.Flag{
 				cli.StringFlag{
