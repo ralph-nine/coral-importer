@@ -120,6 +120,7 @@ type User struct {
 	Profiles         []UserProfile          `json:"profiles,omitempty"`
 	Role             string                 `json:"role" validate:"required,oneof=COMMENTER STAFF MODERATOR ADMIN"`
 	Notifications    UserNotifications      `json:"notifications"`
+	ModeratorNotes   []string               `json:"moderatorNotes"`
 	Status           UserStatus             `json:"status"`
 	CreatedAt        Time                   `json:"createdAt" validate:"required"`
 	IgnoredUsers     []IgnoredUser          `json:"ignoredUsers"`
@@ -131,12 +132,12 @@ type User struct {
 
 func NewUser(tenantID string) *User {
 	return &User{
-		TenantID:      tenantID,
-		Notifications: NewUserNotifications(),
-		Status:        NewUserStatus(),
-		Profiles:      []UserProfile{},
-		Tokens:        []UserToken{},
-		Role:          "COMMENTER",
-		ImportedAt:    Time{Time: time.Now()},
+		TenantID:       tenantID,
+		Notifications:  NewUserNotifications(),
+		Status:         NewUserStatus(),
+		ModeratorNotes: []string{},
+		Tokens:         []UserToken{},
+		Role:           "COMMENTER",
+		ImportedAt:     Time{Time: time.Now()},
 	}
 }

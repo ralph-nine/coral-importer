@@ -69,6 +69,15 @@ func main() {
 					Usage:    "ID of the Tenant to import for",
 					Required: true,
 				},
+				cli.IntFlag{
+					Name:     "migrationID",
+					Usage:    "ID of the most recent migration associated with your installation",
+					Required: true,
+				},
+				cli.BoolFlag{
+					Name:  "forceSkipMigrationCheck",
+					Usage: "used to skip the migration version check",
+				},
 				cli.StringFlag{
 					Name:     "input",
 					Usage:    "folder where the output from mongoexport is located, separated into collection named JSON files",
@@ -78,6 +87,10 @@ func main() {
 					Name:     "output",
 					Usage:    "folder where the outputted mongo files should be placed",
 					Required: true,
+				},
+				cli.BoolFlag{
+					Name:  "version",
+					Usage: "prints version information for this strategy",
 				},
 			},
 		},

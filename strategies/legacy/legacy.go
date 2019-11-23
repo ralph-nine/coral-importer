@@ -15,6 +15,11 @@ import (
 	"gitlab.com/coralproject/coral-importer/common/pipeline"
 )
 
+// CurrentMigrationVersion is the version representing the most recent migration that
+// this strategy is designed to handle. This should be updated as revisions
+// are applied to this strategy for future versions.
+const CurrentMigrationVersion = 1574289134415
+
 var collections = []string{
 	"actions",
 	"assets",
@@ -39,6 +44,20 @@ func validateCollectionFilesExist(input string) error {
 // Import will handle a data import task for importing comments into Coral from
 // a legacy export.
 func Import(c *cli.Context) error {
+	logrus.WithField("currentMigrationVersion", CurrentMigrationVersion).Info("legacy importer")
+	if c.Bool("version") {
+		return nil
+	}
+
+	if c.Bool("forceSkipMigrationCheck") {
+		logrus.Warn("skipping migration check")
+	} else if c.Int("migrationID") != CurrentMigrationVersion {
+		logrus.WithFields(logrus.Fields{
+			"migrationID":             c.Int("migrationID"),
+			"currentMigrationVersion": CurrentMigrationVersion,
+		}).Fatal("migration version mismatch, update importer to support new migrations or skip with --forceSkipMigrationCheck")
+	}
+
 	// tenantID is the ID of the Tenant that we are importing these documents
 	// for.
 	tenantID := c.String("tenantID")
@@ -58,7 +77,6 @@ func Import(c *cli.Context) error {
 
 	// Mark when we started.
 	started := time.Now()
-	logrus.Info("started")
 
 	if err := HandleNonUsers(tenantID, input, output); err != nil {
 		return err

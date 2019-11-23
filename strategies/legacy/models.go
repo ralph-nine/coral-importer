@@ -330,9 +330,11 @@ func TranslateUser(tenantID string, in *User) *coral.User {
 			CreatedAt: user.CreatedAt,
 		}
 	}
-	user.Profiles = make([]coral.UserProfile, len(in.Profiles))
-	for i, profile := range in.Profiles {
-		user.Profiles[i] = TranslateUserProfile(user, in, profile)
+	if len(in.Profiles) > 0 {
+		user.Profiles = make([]coral.UserProfile, len(in.Profiles))
+		for i, profile := range in.Profiles {
+			user.Profiles[i] = TranslateUserProfile(user, in, profile)
+		}
 	}
 
 	user.Status.SuspensionStatus.History = make([]coral.UserSuspensionStatusHistory, len(in.Status.Suspension.History))
