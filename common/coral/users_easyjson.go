@@ -1157,6 +1157,29 @@ func easyjson84c0690eDecodeGitlabComCoralprojectCoralImporterCommonCoral11(in *j
 			out.Role = string(in.String())
 		case "notifications":
 			(out.Notifications).UnmarshalEasyJSON(in)
+		case "moderatorNotes":
+			if in.IsNull() {
+				in.Skip()
+				out.ModeratorNotes = nil
+			} else {
+				in.Delim('[')
+				if out.ModeratorNotes == nil {
+					if !in.IsDelim(']') {
+						out.ModeratorNotes = make([]string, 0, 4)
+					} else {
+						out.ModeratorNotes = []string{}
+					}
+				} else {
+					out.ModeratorNotes = (out.ModeratorNotes)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v14 string
+					v14 = string(in.String())
+					out.ModeratorNotes = append(out.ModeratorNotes, v14)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
 		case "status":
 			(out.Status).UnmarshalEasyJSON(in)
 		case "createdAt":
@@ -1179,9 +1202,9 @@ func easyjson84c0690eDecodeGitlabComCoralprojectCoralImporterCommonCoral11(in *j
 					out.IgnoredUsers = (out.IgnoredUsers)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v14 IgnoredUser
-					(v14).UnmarshalEasyJSON(in)
-					out.IgnoredUsers = append(out.IgnoredUsers, v14)
+					var v15 IgnoredUser
+					(v15).UnmarshalEasyJSON(in)
+					out.IgnoredUsers = append(out.IgnoredUsers, v15)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1202,9 +1225,9 @@ func easyjson84c0690eDecodeGitlabComCoralprojectCoralImporterCommonCoral11(in *j
 					out.Tokens = (out.Tokens)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v15 UserToken
-					(v15).UnmarshalEasyJSON(in)
-					out.Tokens = append(out.Tokens, v15)
+					var v16 UserToken
+					(v16).UnmarshalEasyJSON(in)
+					out.Tokens = append(out.Tokens, v16)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1238,15 +1261,15 @@ func easyjson84c0690eDecodeGitlabComCoralprojectCoralImporterCommonCoral11(in *j
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v16 interface{}
-					if m, ok := v16.(easyjson.Unmarshaler); ok {
+					var v17 interface{}
+					if m, ok := v17.(easyjson.Unmarshaler); ok {
 						m.UnmarshalEasyJSON(in)
-					} else if m, ok := v16.(json.Unmarshaler); ok {
+					} else if m, ok := v17.(json.Unmarshaler); ok {
 						_ = m.UnmarshalJSON(in.Raw())
 					} else {
-						v16 = in.Interface()
+						v17 = in.Interface()
 					}
-					(out.Extra)[key] = v16
+					(out.Extra)[key] = v17
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -1290,11 +1313,11 @@ func easyjson84c0690eEncodeGitlabComCoralprojectCoralImporterCommonCoral11(out *
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v17, v18 := range in.Profiles {
-				if v17 > 0 {
+			for v18, v19 := range in.Profiles {
+				if v18 > 0 {
 					out.RawByte(',')
 				}
-				(v18).MarshalEasyJSON(out)
+				(v19).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1308,6 +1331,22 @@ func easyjson84c0690eEncodeGitlabComCoralprojectCoralImporterCommonCoral11(out *
 		const prefix string = ",\"notifications\":"
 		out.RawString(prefix)
 		(in.Notifications).MarshalEasyJSON(out)
+	}
+	{
+		const prefix string = ",\"moderatorNotes\":"
+		out.RawString(prefix)
+		if in.ModeratorNotes == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v20, v21 := range in.ModeratorNotes {
+				if v20 > 0 {
+					out.RawByte(',')
+				}
+				out.String(string(v21))
+			}
+			out.RawByte(']')
+		}
 	}
 	{
 		const prefix string = ",\"status\":"
@@ -1326,11 +1365,11 @@ func easyjson84c0690eEncodeGitlabComCoralprojectCoralImporterCommonCoral11(out *
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v19, v20 := range in.IgnoredUsers {
-				if v19 > 0 {
+			for v22, v23 := range in.IgnoredUsers {
+				if v22 > 0 {
 					out.RawByte(',')
 				}
-				(v20).MarshalEasyJSON(out)
+				(v23).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1342,11 +1381,11 @@ func easyjson84c0690eEncodeGitlabComCoralprojectCoralImporterCommonCoral11(out *
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v21, v22 := range in.Tokens {
-				if v21 > 0 {
+			for v24, v25 := range in.Tokens {
+				if v24 > 0 {
 					out.RawByte(',')
 				}
-				(v22).MarshalEasyJSON(out)
+				(v25).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1372,21 +1411,21 @@ func easyjson84c0690eEncodeGitlabComCoralprojectCoralImporterCommonCoral11(out *
 			out.RawString(`null`)
 		} else {
 			out.RawByte('{')
-			v23First := true
-			for v23Name, v23Value := range in.Extra {
-				if v23First {
-					v23First = false
+			v26First := true
+			for v26Name, v26Value := range in.Extra {
+				if v26First {
+					v26First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v23Name))
+				out.String(string(v26Name))
 				out.RawByte(':')
-				if m, ok := v23Value.(easyjson.Marshaler); ok {
+				if m, ok := v26Value.(easyjson.Marshaler); ok {
 					m.MarshalEasyJSON(out)
-				} else if m, ok := v23Value.(json.Marshaler); ok {
+				} else if m, ok := v26Value.(json.Marshaler); ok {
 					out.Raw(m.MarshalJSON())
 				} else {
-					out.Raw(json.Marshal(v23Value))
+					out.Raw(json.Marshal(v26Value))
 				}
 			}
 			out.RawByte('}')
