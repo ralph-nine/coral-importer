@@ -74,9 +74,15 @@ func NewUserUsernameStatus() UserUsernameStatus {
 	}
 }
 
+type UserPremodStatusHistory struct {
+	AssignedBy string `json:"assignedBy"`
+	Status     bool   `json:"status"`
+	CreatedAt  Time   `json:"createdAt"`
+}
+
 type UserPremodStatus struct {
-	Active  bool     `json:"active"`
-	History []string `json:"history"`
+	Active  bool                      `json:"active"`
+	History []UserPremodStatusHistory `json:"history"`
 }
 
 type UserStatus struct {
@@ -96,7 +102,7 @@ func NewUserStatus() UserStatus {
 		},
 		UsernameStatus: NewUserUsernameStatus(),
 		PremodStatus: UserPremodStatus{
-			History: []string{},
+			History: []UserPremodStatusHistory{},
 		},
 	}
 }

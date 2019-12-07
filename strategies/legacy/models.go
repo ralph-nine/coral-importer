@@ -172,17 +172,14 @@ func TranslateComment(tenantID string, in *Comment) *coral.Comment {
 }
 
 type Asset struct {
-	ID            string      `json:"id"`
-	URL           string      `json:"url"`
-	ClosedAt      *coral.Time `json:"closedAt"`
-	ClosedMessage *string     `json:"closedMessage"`
-	CreatedAt     coral.Time  `json:"created_at"`
-	Scraped       *coral.Time `json:"scraped"`
-	Metadata      interface{} `json:"metadata"`
-	Settings      interface{} `json:"settings"`
-	// Tags
-
-	// Scraped.
+	ID              string      `json:"id"`
+	URL             string      `json:"url"`
+	ClosedAt        *coral.Time `json:"closedAt"`
+	ClosedMessage   *string     `json:"closedMessage"`
+	CreatedAt       coral.Time  `json:"created_at"`
+	Scraped         *coral.Time `json:"scraped"`
+	Metadata        interface{} `json:"metadata"`
+	Settings        interface{} `json:"settings"`
 	Title           *string     `json:"title"`
 	Author          *string     `json:"author"`
 	Description     *string     `json:"description"`
@@ -293,6 +290,14 @@ type User struct {
 				CreatedAt  coral.Time `json:"created_at"`
 			} `json:"history"`
 		} `json:"suspension"`
+		AlwaysPremod struct {
+			Status  bool `json:"status"`
+			History []struct {
+				AssignedBy string     `json:"assigned_by"`
+				Status     bool       `json:"status"`
+				CreatedAt  coral.Time `json:"created_at"`
+			} `json:"history"`
+		} `json:"alwaysPremod"`
 	} `json:"status"`
 	CreatedAt coral.Time    `json:"created_at"`
 	Metadata  *UserMetadata `json:"metadata"`
@@ -360,6 +365,7 @@ func TranslateUser(tenantID string, in *User) *coral.User {
 		}
 	}
 
+	user.Status.BanStatus.Active = in.Status.Banned.Status
 	user.Status.BanStatus.History = make([]coral.UserBanStatusHistory, len(in.Status.Banned.History))
 	for i, history := range in.Status.Banned.History {
 		user.Status.BanStatus.History[i] = coral.UserBanStatusHistory{
@@ -374,22 +380,25 @@ func TranslateUser(tenantID string, in *User) *coral.User {
 		}
 	}
 
-	if len(in.Status.Username.History) > 0 {
-		user.Status.UsernameStatus.History = make([]coral.UserUsernameStatusHistory, len(in.Status.Username.History))
-		for i, history := range in.Status.Username.History {
-			user.Status.UsernameStatus.History[i] = coral.UserUsernameStatusHistory{
-				ID:        uuid.NewV1().String(),
-				Username:  "",
-				CreatedAt: history.CreatedAt,
-			}
-
-			if history.AssignedBy != nil {
-				user.Status.UsernameStatus.History[i].CreatedBy = *history.AssignedBy
+	user.Status.PremodStatus.Active = in.Status.AlwaysPremod.Status
+	if len(in.Status.AlwaysPremod.History) > 0 {
+		user.Status.PremodStatus.History = make([]coral.UserPremodStatusHistory, len(in.Status.AlwaysPremod.History))
+		for i, status := range in.Status.AlwaysPremod.History {
+			user.Status.PremodStatus.History[i] = coral.UserPremodStatusHistory{
+				AssignedBy: status.AssignedBy,
+				Status:     status.Status,
+				CreatedAt:  status.CreatedAt,
 			}
 		}
+	}
 
-		// The last username status should be the most recent username.
-		user.Status.UsernameStatus.History[len(user.Status.UsernameStatus.History)-1].Username = user.Username
+	user.Status.UsernameStatus.History = []coral.UserUsernameStatusHistory{
+		{
+			ID:        uuid.NewV1().String(),
+			Username:  user.Username,
+			CreatedBy: user.ID,
+			CreatedAt: user.CreatedAt,
+		},
 	}
 
 	for _, token := range in.Tokens {

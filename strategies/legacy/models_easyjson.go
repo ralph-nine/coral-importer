@@ -768,6 +768,14 @@ func easyjsonD2b7633eDecode(in *jlexer.Lexer, out *struct {
 			CreatedAt  coral.Time `json:"created_at"`
 		} `json:"history"`
 	} `json:"suspension"`
+	AlwaysPremod struct {
+		Status  bool `json:"status"`
+		History []struct {
+			AssignedBy string     `json:"assigned_by"`
+			Status     bool       `json:"status"`
+			CreatedAt  coral.Time `json:"created_at"`
+		} `json:"history"`
+	} `json:"alwaysPremod"`
 }) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
@@ -793,6 +801,8 @@ func easyjsonD2b7633eDecode(in *jlexer.Lexer, out *struct {
 			easyjsonD2b7633eDecode2(in, &out.Banned)
 		case "suspension":
 			easyjsonD2b7633eDecode3(in, &out.Suspension)
+		case "alwaysPremod":
+			easyjsonD2b7633eDecode4(in, &out.AlwaysPremod)
 		default:
 			in.SkipRecursive()
 		}
@@ -830,6 +840,14 @@ func easyjsonD2b7633eEncode(out *jwriter.Writer, in struct {
 			CreatedAt  coral.Time `json:"created_at"`
 		} `json:"history"`
 	} `json:"suspension"`
+	AlwaysPremod struct {
+		Status  bool `json:"status"`
+		History []struct {
+			AssignedBy string     `json:"assigned_by"`
+			Status     bool       `json:"status"`
+			CreatedAt  coral.Time `json:"created_at"`
+		} `json:"history"`
+	} `json:"alwaysPremod"`
 }) {
 	out.RawByte('{')
 	first := true
@@ -848,6 +866,184 @@ func easyjsonD2b7633eEncode(out *jwriter.Writer, in struct {
 		const prefix string = ",\"suspension\":"
 		out.RawString(prefix)
 		easyjsonD2b7633eEncode3(out, in.Suspension)
+	}
+	{
+		const prefix string = ",\"alwaysPremod\":"
+		out.RawString(prefix)
+		easyjsonD2b7633eEncode4(out, in.AlwaysPremod)
+	}
+	out.RawByte('}')
+}
+func easyjsonD2b7633eDecode4(in *jlexer.Lexer, out *struct {
+	Status  bool `json:"status"`
+	History []struct {
+		AssignedBy string     `json:"assigned_by"`
+		Status     bool       `json:"status"`
+		CreatedAt  coral.Time `json:"created_at"`
+	} `json:"history"`
+}) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "status":
+			out.Status = bool(in.Bool())
+		case "history":
+			if in.IsNull() {
+				in.Skip()
+				out.History = nil
+			} else {
+				in.Delim('[')
+				if out.History == nil {
+					if !in.IsDelim(']') {
+						out.History = make([]struct {
+							AssignedBy string     `json:"assigned_by"`
+							Status     bool       `json:"status"`
+							CreatedAt  coral.Time `json:"created_at"`
+						}, 0, 1)
+					} else {
+						out.History = []struct {
+							AssignedBy string     `json:"assigned_by"`
+							Status     bool       `json:"status"`
+							CreatedAt  coral.Time `json:"created_at"`
+						}{}
+					}
+				} else {
+					out.History = (out.History)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v10 struct {
+						AssignedBy string     `json:"assigned_by"`
+						Status     bool       `json:"status"`
+						CreatedAt  coral.Time `json:"created_at"`
+					}
+					easyjsonD2b7633eDecode5(in, &v10)
+					out.History = append(out.History, v10)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD2b7633eEncode4(out *jwriter.Writer, in struct {
+	Status  bool `json:"status"`
+	History []struct {
+		AssignedBy string     `json:"assigned_by"`
+		Status     bool       `json:"status"`
+		CreatedAt  coral.Time `json:"created_at"`
+	} `json:"history"`
+}) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"status\":"
+		out.RawString(prefix[1:])
+		out.Bool(bool(in.Status))
+	}
+	{
+		const prefix string = ",\"history\":"
+		out.RawString(prefix)
+		if in.History == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v11, v12 := range in.History {
+				if v11 > 0 {
+					out.RawByte(',')
+				}
+				easyjsonD2b7633eEncode5(out, v12)
+			}
+			out.RawByte(']')
+		}
+	}
+	out.RawByte('}')
+}
+func easyjsonD2b7633eDecode5(in *jlexer.Lexer, out *struct {
+	AssignedBy string     `json:"assigned_by"`
+	Status     bool       `json:"status"`
+	CreatedAt  coral.Time `json:"created_at"`
+}) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "assigned_by":
+			out.AssignedBy = string(in.String())
+		case "status":
+			out.Status = bool(in.Bool())
+		case "created_at":
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.CreatedAt).UnmarshalJSON(data))
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD2b7633eEncode5(out *jwriter.Writer, in struct {
+	AssignedBy string     `json:"assigned_by"`
+	Status     bool       `json:"status"`
+	CreatedAt  coral.Time `json:"created_at"`
+}) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"assigned_by\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.AssignedBy))
+	}
+	{
+		const prefix string = ",\"status\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.Status))
+	}
+	{
+		const prefix string = ",\"created_at\":"
+		out.RawString(prefix)
+		out.Raw((in.CreatedAt).MarshalJSON())
 	}
 	out.RawByte('}')
 }
@@ -916,14 +1112,14 @@ func easyjsonD2b7633eDecode3(in *jlexer.Lexer, out *struct {
 					out.History = (out.History)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v10 struct {
+					var v13 struct {
 						AssignedBy *string    `json:"assigned_by"`
 						Message    string     `json:"message"`
 						Until      coral.Time `json:"until"`
 						CreatedAt  coral.Time `json:"created_at"`
 					}
-					easyjsonD2b7633eDecode4(in, &v10)
-					out.History = append(out.History, v10)
+					easyjsonD2b7633eDecode6(in, &v13)
+					out.History = append(out.History, v13)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -966,18 +1162,18 @@ func easyjsonD2b7633eEncode3(out *jwriter.Writer, in struct {
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v11, v12 := range in.History {
-				if v11 > 0 {
+			for v14, v15 := range in.History {
+				if v14 > 0 {
 					out.RawByte(',')
 				}
-				easyjsonD2b7633eEncode4(out, v12)
+				easyjsonD2b7633eEncode6(out, v15)
 			}
 			out.RawByte(']')
 		}
 	}
 	out.RawByte('}')
 }
-func easyjsonD2b7633eDecode4(in *jlexer.Lexer, out *struct {
+func easyjsonD2b7633eDecode6(in *jlexer.Lexer, out *struct {
 	AssignedBy *string    `json:"assigned_by"`
 	Message    string     `json:"message"`
 	Until      coral.Time `json:"until"`
@@ -1031,7 +1227,7 @@ func easyjsonD2b7633eDecode4(in *jlexer.Lexer, out *struct {
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncode4(out *jwriter.Writer, in struct {
+func easyjsonD2b7633eEncode6(out *jwriter.Writer, in struct {
 	AssignedBy *string    `json:"assigned_by"`
 	Message    string     `json:"message"`
 	Until      coral.Time `json:"until"`
@@ -1121,14 +1317,14 @@ func easyjsonD2b7633eDecode2(in *jlexer.Lexer, out *struct {
 					out.History = (out.History)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v13 struct {
+					var v16 struct {
 						AssignedBy *string    `json:"assigned_by"`
 						Message    string     `json:"message"`
 						Status     bool       `json:"status"`
 						CreatedAt  coral.Time `json:"created_at"`
 					}
-					easyjsonD2b7633eDecode5(in, &v13)
-					out.History = append(out.History, v13)
+					easyjsonD2b7633eDecode7(in, &v16)
+					out.History = append(out.History, v16)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1167,18 +1363,18 @@ func easyjsonD2b7633eEncode2(out *jwriter.Writer, in struct {
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v14, v15 := range in.History {
-				if v14 > 0 {
+			for v17, v18 := range in.History {
+				if v17 > 0 {
 					out.RawByte(',')
 				}
-				easyjsonD2b7633eEncode5(out, v15)
+				easyjsonD2b7633eEncode7(out, v18)
 			}
 			out.RawByte(']')
 		}
 	}
 	out.RawByte('}')
 }
-func easyjsonD2b7633eDecode5(in *jlexer.Lexer, out *struct {
+func easyjsonD2b7633eDecode7(in *jlexer.Lexer, out *struct {
 	AssignedBy *string    `json:"assigned_by"`
 	Message    string     `json:"message"`
 	Status     bool       `json:"status"`
@@ -1230,7 +1426,7 @@ func easyjsonD2b7633eDecode5(in *jlexer.Lexer, out *struct {
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncode5(out *jwriter.Writer, in struct {
+func easyjsonD2b7633eEncode7(out *jwriter.Writer, in struct {
 	AssignedBy *string    `json:"assigned_by"`
 	Message    string     `json:"message"`
 	Status     bool       `json:"status"`
@@ -1317,13 +1513,13 @@ func easyjsonD2b7633eDecode1(in *jlexer.Lexer, out *struct {
 					out.History = (out.History)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v16 struct {
+					var v19 struct {
 						AssignedBy *string    `json:"assigned_by"`
 						Status     string     `json:"status"`
 						CreatedAt  coral.Time `json:"created_at"`
 					}
-					easyjsonD2b7633eDecode6(in, &v16)
-					out.History = append(out.History, v16)
+					easyjsonD2b7633eDecode8(in, &v19)
+					out.History = append(out.History, v19)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1361,18 +1557,18 @@ func easyjsonD2b7633eEncode1(out *jwriter.Writer, in struct {
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v17, v18 := range in.History {
-				if v17 > 0 {
+			for v20, v21 := range in.History {
+				if v20 > 0 {
 					out.RawByte(',')
 				}
-				easyjsonD2b7633eEncode6(out, v18)
+				easyjsonD2b7633eEncode8(out, v21)
 			}
 			out.RawByte(']')
 		}
 	}
 	out.RawByte('}')
 }
-func easyjsonD2b7633eDecode6(in *jlexer.Lexer, out *struct {
+func easyjsonD2b7633eDecode8(in *jlexer.Lexer, out *struct {
 	AssignedBy *string    `json:"assigned_by"`
 	Status     string     `json:"status"`
 	CreatedAt  coral.Time `json:"created_at"`
@@ -1421,7 +1617,7 @@ func easyjsonD2b7633eDecode6(in *jlexer.Lexer, out *struct {
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncode6(out *jwriter.Writer, in struct {
+func easyjsonD2b7633eEncode8(out *jwriter.Writer, in struct {
 	AssignedBy *string    `json:"assigned_by"`
 	Status     string     `json:"status"`
 	CreatedAt  coral.Time `json:"created_at"`
@@ -1480,7 +1676,7 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy6(i
 				*out.AssignedBy = string(in.String())
 			}
 		case "tag":
-			easyjsonD2b7633eDecode7(in, &out.Tag)
+			easyjsonD2b7633eDecode9(in, &out.Tag)
 		case "created_at":
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.CreatedAt).UnmarshalJSON(data))
@@ -1511,7 +1707,7 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLegacy6(o
 	{
 		const prefix string = ",\"tag\":"
 		out.RawString(prefix)
-		easyjsonD2b7633eEncode7(out, in.Tag)
+		easyjsonD2b7633eEncode9(out, in.Tag)
 	}
 	{
 		const prefix string = ",\"created_at\":"
@@ -1544,7 +1740,7 @@ func (v *CommentTag) UnmarshalJSON(data []byte) error {
 func (v *CommentTag) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy6(l, v)
 }
-func easyjsonD2b7633eDecode7(in *jlexer.Lexer, out *struct {
+func easyjsonD2b7633eDecode9(in *jlexer.Lexer, out *struct {
 	Name string `json:"name"`
 }) {
 	isTopLevel := in.IsStart()
@@ -1577,7 +1773,7 @@ func easyjsonD2b7633eDecode7(in *jlexer.Lexer, out *struct {
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncode7(out *jwriter.Writer, in struct {
+func easyjsonD2b7633eEncode9(out *jwriter.Writer, in struct {
 	Name string `json:"name"`
 }) {
 	out.RawByte('{')
@@ -1714,13 +1910,13 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(i
 					out.StatusHistory = (out.StatusHistory)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v19 struct {
+					var v22 struct {
 						AssignedBy *string    `json:"assigned_by"`
 						Type       string     `json:"type"`
 						CreatedAt  coral.Time `json:"created_at"`
 					}
-					easyjsonD2b7633eDecode8(in, &v19)
-					out.StatusHistory = append(out.StatusHistory, v19)
+					easyjsonD2b7633eDecode10(in, &v22)
+					out.StatusHistory = append(out.StatusHistory, v22)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1741,9 +1937,9 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(i
 					out.BodyHistory = (out.BodyHistory)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v20 CommentBodyHistory
-					(v20).UnmarshalEasyJSON(in)
-					out.BodyHistory = append(out.BodyHistory, v20)
+					var v23 CommentBodyHistory
+					(v23).UnmarshalEasyJSON(in)
+					out.BodyHistory = append(out.BodyHistory, v23)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1764,9 +1960,9 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(i
 					out.Tags = (out.Tags)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v21 CommentTag
-					(v21).UnmarshalEasyJSON(in)
-					out.Tags = append(out.Tags, v21)
+					var v24 CommentTag
+					(v24).UnmarshalEasyJSON(in)
+					out.Tags = append(out.Tags, v24)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1839,11 +2035,11 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(o
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v22, v23 := range in.StatusHistory {
-				if v22 > 0 {
+			for v25, v26 := range in.StatusHistory {
+				if v25 > 0 {
 					out.RawByte(',')
 				}
-				easyjsonD2b7633eEncode8(out, v23)
+				easyjsonD2b7633eEncode10(out, v26)
 			}
 			out.RawByte(']')
 		}
@@ -1855,11 +2051,11 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(o
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v24, v25 := range in.BodyHistory {
-				if v24 > 0 {
+			for v27, v28 := range in.BodyHistory {
+				if v27 > 0 {
 					out.RawByte(',')
 				}
-				(v25).MarshalEasyJSON(out)
+				(v28).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1871,11 +2067,11 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(o
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v26, v27 := range in.Tags {
-				if v26 > 0 {
+			for v29, v30 := range in.Tags {
+				if v29 > 0 {
 					out.RawByte(',')
 				}
-				(v27).MarshalEasyJSON(out)
+				(v30).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1939,7 +2135,7 @@ func (v *Comment) UnmarshalJSON(data []byte) error {
 func (v *Comment) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(l, v)
 }
-func easyjsonD2b7633eDecode8(in *jlexer.Lexer, out *struct {
+func easyjsonD2b7633eDecode10(in *jlexer.Lexer, out *struct {
 	AssignedBy *string    `json:"assigned_by"`
 	Type       string     `json:"type"`
 	CreatedAt  coral.Time `json:"created_at"`
@@ -1988,7 +2184,7 @@ func easyjsonD2b7633eDecode8(in *jlexer.Lexer, out *struct {
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncode8(out *jwriter.Writer, in struct {
+func easyjsonD2b7633eEncode10(out *jwriter.Writer, in struct {
 	AssignedBy *string    `json:"assigned_by"`
 	Type       string     `json:"type"`
 	CreatedAt  coral.Time `json:"created_at"`
@@ -2387,15 +2583,15 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy10(
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v28 interface{}
-					if m, ok := v28.(easyjson.Unmarshaler); ok {
+					var v31 interface{}
+					if m, ok := v31.(easyjson.Unmarshaler); ok {
 						m.UnmarshalEasyJSON(in)
-					} else if m, ok := v28.(json.Unmarshaler); ok {
+					} else if m, ok := v31.(json.Unmarshaler); ok {
 						_ = m.UnmarshalJSON(in.Raw())
 					} else {
-						v28 = in.Interface()
+						v31 = in.Interface()
 					}
-					(out.Metadata)[key] = v28
+					(out.Metadata)[key] = v31
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -2459,21 +2655,21 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLegacy10(
 			out.RawString(`null`)
 		} else {
 			out.RawByte('{')
-			v29First := true
-			for v29Name, v29Value := range in.Metadata {
-				if v29First {
-					v29First = false
+			v32First := true
+			for v32Name, v32Value := range in.Metadata {
+				if v32First {
+					v32First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v29Name))
+				out.String(string(v32Name))
 				out.RawByte(':')
-				if m, ok := v29Value.(easyjson.Marshaler); ok {
+				if m, ok := v32Value.(easyjson.Marshaler); ok {
 					m.MarshalEasyJSON(out)
-				} else if m, ok := v29Value.(json.Marshaler); ok {
+				} else if m, ok := v32Value.(json.Marshaler); ok {
 					out.Raw(m.MarshalJSON())
 				} else {
-					out.Raw(json.Marshal(v29Value))
+					out.Raw(json.Marshal(v32Value))
 				}
 			}
 			out.RawByte('}')
