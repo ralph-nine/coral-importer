@@ -42,7 +42,15 @@ func NewStoryCommentCounts() StoryCommentCounts {
 	}
 }
 
-type StorySettings struct{}
+type MessageBox struct {
+	Enabled bool   `json:"enabled"`
+	Content string `json:"content"`
+}
+
+type StorySettings struct {
+	Moderation *string     `json:"moderation,omitempty"`
+	MessageBox *MessageBox `json:"messageBox,omitempty"`
+}
 
 type StoryMetadata struct {
 	Title       string `json:"title,omitempty"`

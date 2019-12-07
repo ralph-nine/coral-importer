@@ -172,19 +172,24 @@ func TranslateComment(tenantID string, in *Comment) *coral.Comment {
 }
 
 type Asset struct {
-	ID              string      `json:"id"`
-	URL             string      `json:"url"`
-	ClosedAt        *coral.Time `json:"closedAt"`
-	ClosedMessage   *string     `json:"closedMessage"`
-	CreatedAt       coral.Time  `json:"created_at"`
-	Scraped         *coral.Time `json:"scraped"`
-	Metadata        interface{} `json:"metadata"`
-	Settings        interface{} `json:"settings"`
-	Title           *string     `json:"title"`
-	Author          *string     `json:"author"`
-	Description     *string     `json:"description"`
-	Image           *string     `json:"image"`
-	Section         *string     `json:"section"`
+	ID            string      `json:"id"`
+	URL           string      `json:"url"`
+	ClosedAt      *coral.Time `json:"closedAt"`
+	ClosedMessage *string     `json:"closedMessage"`
+	CreatedAt     coral.Time  `json:"created_at"`
+	Scraped       *coral.Time `json:"scraped"`
+	Metadata      interface{} `json:"metadata"`
+	Title         *string     `json:"title"`
+	Author        *string     `json:"author"`
+	Description   *string     `json:"description"`
+	Image         *string     `json:"image"`
+	Section       *string     `json:"section"`
+	Settings      struct {
+		Moderation         *string `json:"moderation,omitempty"`
+		QuestionBoxContent *string `json:"questionBoxContent,omitempty"`
+		QuestionBoxEnable  *bool   `json:"questionBoxEnable,omitempty"`
+		QuestionBoxIcon    *string `json:"questionBoxIcon,omitempty"`
+	} `json:"settings"`
 	ModifiedDate    *coral.Time `json:"modified_date"`
 	PublicationDate *coral.Time `json:"publication_date"`
 }
@@ -222,6 +227,17 @@ func TranslateAsset(tenantID string, asset *Asset) *coral.Story {
 
 	if asset.ClosedAt != nil {
 		story.ClosedAt = asset.ClosedAt
+	}
+
+	if asset.Settings.Moderation != nil {
+		story.Settings.Moderation = asset.Settings.Moderation
+	}
+
+	if asset.Settings.QuestionBoxEnable != nil && asset.Settings.QuestionBoxContent != nil {
+		story.Settings.MessageBox = &coral.MessageBox{
+			Enabled: *asset.Settings.QuestionBoxEnable,
+			Content: *asset.Settings.QuestionBoxContent,
+		}
 	}
 
 	return story

@@ -2282,14 +2282,6 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy9(i
 			} else {
 				out.Metadata = in.Interface()
 			}
-		case "settings":
-			if m, ok := out.Settings.(easyjson.Unmarshaler); ok {
-				m.UnmarshalEasyJSON(in)
-			} else if m, ok := out.Settings.(json.Unmarshaler); ok {
-				_ = m.UnmarshalJSON(in.Raw())
-			} else {
-				out.Settings = in.Interface()
-			}
 		case "title":
 			if in.IsNull() {
 				in.Skip()
@@ -2340,6 +2332,8 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy9(i
 				}
 				*out.Section = string(in.String())
 			}
+		case "settings":
+			easyjsonD2b7633eDecode11(in, &out.Settings)
 		case "modified_date":
 			if in.IsNull() {
 				in.Skip()
@@ -2432,17 +2426,6 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLegacy9(o
 		}
 	}
 	{
-		const prefix string = ",\"settings\":"
-		out.RawString(prefix)
-		if m, ok := in.Settings.(easyjson.Marshaler); ok {
-			m.MarshalEasyJSON(out)
-		} else if m, ok := in.Settings.(json.Marshaler); ok {
-			out.Raw(m.MarshalJSON())
-		} else {
-			out.Raw(json.Marshal(in.Settings))
-		}
-	}
-	{
 		const prefix string = ",\"title\":"
 		out.RawString(prefix)
 		if in.Title == nil {
@@ -2488,6 +2471,11 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLegacy9(o
 		}
 	}
 	{
+		const prefix string = ",\"settings\":"
+		out.RawString(prefix)
+		easyjsonD2b7633eEncode11(out, in.Settings)
+	}
+	{
 		const prefix string = ",\"modified_date\":"
 		out.RawString(prefix)
 		if in.ModifiedDate == nil {
@@ -2530,6 +2518,127 @@ func (v *Asset) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Asset) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy9(l, v)
+}
+func easyjsonD2b7633eDecode11(in *jlexer.Lexer, out *struct {
+	Moderation         *string `json:"moderation,omitempty"`
+	QuestionBoxContent *string `json:"questionBoxContent,omitempty"`
+	QuestionBoxEnable  *bool   `json:"questionBoxEnable,omitempty"`
+	QuestionBoxIcon    *string `json:"questionBoxIcon,omitempty"`
+}) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "moderation":
+			if in.IsNull() {
+				in.Skip()
+				out.Moderation = nil
+			} else {
+				if out.Moderation == nil {
+					out.Moderation = new(string)
+				}
+				*out.Moderation = string(in.String())
+			}
+		case "questionBoxContent":
+			if in.IsNull() {
+				in.Skip()
+				out.QuestionBoxContent = nil
+			} else {
+				if out.QuestionBoxContent == nil {
+					out.QuestionBoxContent = new(string)
+				}
+				*out.QuestionBoxContent = string(in.String())
+			}
+		case "questionBoxEnable":
+			if in.IsNull() {
+				in.Skip()
+				out.QuestionBoxEnable = nil
+			} else {
+				if out.QuestionBoxEnable == nil {
+					out.QuestionBoxEnable = new(bool)
+				}
+				*out.QuestionBoxEnable = bool(in.Bool())
+			}
+		case "questionBoxIcon":
+			if in.IsNull() {
+				in.Skip()
+				out.QuestionBoxIcon = nil
+			} else {
+				if out.QuestionBoxIcon == nil {
+					out.QuestionBoxIcon = new(string)
+				}
+				*out.QuestionBoxIcon = string(in.String())
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD2b7633eEncode11(out *jwriter.Writer, in struct {
+	Moderation         *string `json:"moderation,omitempty"`
+	QuestionBoxContent *string `json:"questionBoxContent,omitempty"`
+	QuestionBoxEnable  *bool   `json:"questionBoxEnable,omitempty"`
+	QuestionBoxIcon    *string `json:"questionBoxIcon,omitempty"`
+}) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	if in.Moderation != nil {
+		const prefix string = ",\"moderation\":"
+		first = false
+		out.RawString(prefix[1:])
+		out.String(string(*in.Moderation))
+	}
+	if in.QuestionBoxContent != nil {
+		const prefix string = ",\"questionBoxContent\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(*in.QuestionBoxContent))
+	}
+	if in.QuestionBoxEnable != nil {
+		const prefix string = ",\"questionBoxEnable\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Bool(bool(*in.QuestionBoxEnable))
+	}
+	if in.QuestionBoxIcon != nil {
+		const prefix string = ",\"questionBoxIcon\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(*in.QuestionBoxIcon))
+	}
+	out.RawByte('}')
 }
 func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy10(in *jlexer.Lexer, out *Action) {
 	isTopLevel := in.IsStart()
