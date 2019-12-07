@@ -3,6 +3,7 @@ package legacy
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
@@ -150,9 +151,14 @@ func TranslateComment(tenantID string, in *Comment) *coral.Comment {
 
 		comment.Revisions = make([]coral.Revision, revisionLength)
 		for i, revision := range in.BodyHistory {
+
+			// The body that comes from the revision body will contain `\n`
+			// characters. We need to convert these to `<br>` tags.
+			body := strings.ReplaceAll(revision.Body, "\n", "<br>")
+
 			comment.Revisions[i] = coral.Revision{
 				ID:           comment.ID + "-" + fmt.Sprintf("%d", i),
-				Body:         coral.HTML(revision.Body),
+				Body:         coral.HTML(body),
 				Metadata:     coral.RevisionMetadata{},
 				ActionCounts: map[string]int{},
 			}
