@@ -221,6 +221,12 @@ func TranslateAsset(tenantID string, asset *Asset) *coral.Story {
 		story.Metadata.PublishedAt = asset.PublicationDate
 	}
 
+	story.CreatedAt = asset.CreatedAt
+
+	if asset.ClosedAt != nil {
+		story.ClosedAt = asset.ClosedAt
+	}
+
 	return story
 }
 

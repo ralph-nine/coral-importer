@@ -358,6 +358,18 @@ func easyjsonE08b5de9DecodeGitlabComCoralprojectCoralImporterCommonCoral3(in *jl
 			(out.Settings).UnmarshalEasyJSON(in)
 		case "metadata":
 			(out.Metadata).UnmarshalEasyJSON(in)
+		case "closedAt":
+			if in.IsNull() {
+				in.Skip()
+				out.ClosedAt = nil
+			} else {
+				if out.ClosedAt == nil {
+					out.ClosedAt = new(Time)
+				}
+				if data := in.Raw(); in.Ok() {
+					in.AddError((*out.ClosedAt).UnmarshalJSON(data))
+				}
+			}
 		case "createdAt":
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.CreatedAt).UnmarshalJSON(data))
@@ -435,6 +447,11 @@ func easyjsonE08b5de9EncodeGitlabComCoralprojectCoralImporterCommonCoral3(out *j
 		const prefix string = ",\"metadata\":"
 		out.RawString(prefix)
 		(in.Metadata).MarshalEasyJSON(out)
+	}
+	if in.ClosedAt != nil {
+		const prefix string = ",\"closedAt\":"
+		out.RawString(prefix)
+		out.Raw((*in.ClosedAt).MarshalJSON())
 	}
 	{
 		const prefix string = ",\"createdAt\":"

@@ -53,7 +53,7 @@ type StoryMetadata struct {
 	PublishedAt *Time  `json:"publishedAt,omitempty"`
 }
 
-// Story is thye base Coral Story that is used in Coral.
+// Story is the base Coral Story that is used in Coral.
 type Story struct {
 	TenantID      string                 `json:"tenantID" validate:"required"`
 	ID            string                 `json:"id" conform:"trim" validate:"required"`
@@ -61,6 +61,7 @@ type Story struct {
 	CommentCounts StoryCommentCounts     `json:"commentCounts"`
 	Settings      StorySettings          `json:"settings"`
 	Metadata      StoryMetadata          `json:"metadata"`
+	ClosedAt      *Time                  `json:"closedAt,omitempty"`
 	CreatedAt     Time                   `json:"createdAt" validate:"required"`
 	ImportedAt    Time                   `json:"importedAt"`
 	Extra         map[string]interface{} `json:"extra"`
