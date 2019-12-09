@@ -81,6 +81,11 @@ func main() {
 					Usage: "used to skip the migration version check",
 				},
 				cli.StringFlag{
+					Name:  "preferredPerspectiveModel",
+					Usage: "the preferred model to use for copying over toxicity scores",
+					Value: "SEVERE_TOXICITY",
+				},
+				cli.StringFlag{
 					Name:     "input",
 					Usage:    "folder where the output from mongoexport is located, separated into collection named JSON files",
 					Required: true,

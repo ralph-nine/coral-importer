@@ -15,8 +15,8 @@ import (
 	"gitlab.com/coralproject/coral-importer/common/pipeline"
 )
 
-// CurrentMigrationVersion is the version representing the most recent migration that
-// this strategy is designed to handle. This should be updated as revisions
+// CurrentMigrationVersion is the version representing the most recent migration
+// that this strategy is designed to handle. This should be updated as revisions
 // are applied to this strategy for future versions.
 const CurrentMigrationVersion int64 = 1574289134415
 
@@ -27,6 +27,10 @@ var collections = []string{
 	"settings",
 	"users",
 }
+
+// PreferredPerspectiveModel is the stored preferred perspective model that
+// should be used to copy over the perspective settings.
+var PreferredPerspectiveModel string
 
 // validateCollectionFilesExist will ensure that all the collection files that
 // we expect to be in the input directory actually exist.
@@ -57,6 +61,9 @@ func Import(c *cli.Context) error {
 			"currentMigrationVersion": CurrentMigrationVersion,
 		}).Fatal("migration version mismatch, update importer to support new migrations or skip with --forceSkipMigrationCheck")
 	}
+
+	// Copy over the preferredPerspectiveModel from the flags.
+	PreferredPerspectiveModel = c.String("preferredPerspectiveModel")
 
 	// tenantID is the ID of the Tenant that we are importing these documents
 	// for.

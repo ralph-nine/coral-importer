@@ -100,6 +100,12 @@ type Comment struct {
 		Type       string     `json:"type"`
 		CreatedAt  coral.Time `json:"created_at"`
 	} `json:"status_history"`
+	Metadata *struct {
+		Perspective map[string]struct {
+			SummaryScore float64 `json:"summaryScore"`
+		} `json:"perspective"`
+		Akismet *bool `json:"akismet"`
+	} `json:"metadata"`
 	BodyHistory []CommentBodyHistory `json:"body_history"`
 	Tags        []CommentTag         `json:"tags"`
 	ParentID    *string              `json:"parent_id"`
@@ -166,6 +172,39 @@ func TranslateComment(tenantID string, in *Comment) *coral.Comment {
 
 		// Ensure that the last revision ID is the comment's ID.
 		comment.Revisions[revisionLength-1].ID = comment.ID
+
+		// Copy over the revision metadata for the last revision if it's set.
+		if in.Metadata != nil {
+			if in.Metadata.Perspective != nil {
+
+				// Try to get the perspective model from the map.
+				model := PreferredPerspectiveModel
+				perspective, ok := in.Metadata.Perspective[model]
+				if !ok {
+					// A perspective model was not found, get the first one it
+					// has and break out of the loop.
+					for modelName, scores := range in.Metadata.Perspective {
+						ok = true
+						model = modelName
+						perspective.SummaryScore = scores.SummaryScore
+						break
+					}
+				}
+
+				// If a perspective model was found, then set it.
+				if ok {
+					comment.Revisions[revisionLength-1].Metadata.Perspective = &coral.RevisionPerspective{
+						Score: perspective.SummaryScore,
+						Model: model,
+					}
+				}
+			}
+
+			// If the akismet values are provided, then set it.
+			if in.Metadata.Akismet != nil {
+				comment.Revisions[revisionLength-1].Metadata.Akismet = in.Metadata.Akismet
+			}
+		}
 	} else {
 		comment.DeletedAt = in.DeletedAt
 	}

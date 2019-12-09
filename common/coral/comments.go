@@ -3,9 +3,17 @@ package coral
 
 import "time"
 
+type RevisionPerspective struct {
+	Score float64 `json:"score"`
+	Model string  `json:"model"`
+}
+
 // RevisionMetadata is the metadata associated with a given Revision for a
 // Comment in Coral.
-type RevisionMetadata struct{}
+type RevisionMetadata struct {
+	Akismet     *bool                `json:"akismet,omitempty"`
+	Perspective *RevisionPerspective `json:"perspective,omitempty"`
+}
 
 // Revision is a given revision of a Comment in Coral.
 type Revision struct {

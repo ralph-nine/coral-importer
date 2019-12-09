@@ -1921,6 +1921,21 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(i
 				}
 				in.Delim(']')
 			}
+		case "metadata":
+			if in.IsNull() {
+				in.Skip()
+				out.Metadata = nil
+			} else {
+				if out.Metadata == nil {
+					out.Metadata = new(struct {
+						Perspective map[string]struct {
+							SummaryScore float64 `json:"summaryScore"`
+						} `json:"perspective"`
+						Akismet *bool `json:"akismet"`
+					})
+				}
+				easyjsonD2b7633eDecode11(in, out.Metadata)
+			}
 		case "body_history":
 			if in.IsNull() {
 				in.Skip()
@@ -2045,6 +2060,15 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(o
 		}
 	}
 	{
+		const prefix string = ",\"metadata\":"
+		out.RawString(prefix)
+		if in.Metadata == nil {
+			out.RawString("null")
+		} else {
+			easyjsonD2b7633eEncode11(out, *in.Metadata)
+		}
+	}
+	{
 		const prefix string = ",\"body_history\":"
 		out.RawString(prefix)
 		if in.BodyHistory == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
@@ -2134,6 +2158,161 @@ func (v *Comment) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Comment) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy8(l, v)
+}
+func easyjsonD2b7633eDecode11(in *jlexer.Lexer, out *struct {
+	Perspective map[string]struct {
+		SummaryScore float64 `json:"summaryScore"`
+	} `json:"perspective"`
+	Akismet *bool `json:"akismet"`
+}) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "perspective":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				in.Delim('{')
+				if !in.IsDelim('}') {
+					out.Perspective = make(map[string]struct {
+						SummaryScore float64 `json:"summaryScore"`
+					})
+				} else {
+					out.Perspective = nil
+				}
+				for !in.IsDelim('}') {
+					key := string(in.String())
+					in.WantColon()
+					var v31 struct {
+						SummaryScore float64 `json:"summaryScore"`
+					}
+					easyjsonD2b7633eDecode12(in, &v31)
+					(out.Perspective)[key] = v31
+					in.WantComma()
+				}
+				in.Delim('}')
+			}
+		case "akismet":
+			if in.IsNull() {
+				in.Skip()
+				out.Akismet = nil
+			} else {
+				if out.Akismet == nil {
+					out.Akismet = new(bool)
+				}
+				*out.Akismet = bool(in.Bool())
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD2b7633eEncode11(out *jwriter.Writer, in struct {
+	Perspective map[string]struct {
+		SummaryScore float64 `json:"summaryScore"`
+	} `json:"perspective"`
+	Akismet *bool `json:"akismet"`
+}) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"perspective\":"
+		out.RawString(prefix[1:])
+		if in.Perspective == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+			out.RawString(`null`)
+		} else {
+			out.RawByte('{')
+			v32First := true
+			for v32Name, v32Value := range in.Perspective {
+				if v32First {
+					v32First = false
+				} else {
+					out.RawByte(',')
+				}
+				out.String(string(v32Name))
+				out.RawByte(':')
+				easyjsonD2b7633eEncode12(out, v32Value)
+			}
+			out.RawByte('}')
+		}
+	}
+	{
+		const prefix string = ",\"akismet\":"
+		out.RawString(prefix)
+		if in.Akismet == nil {
+			out.RawString("null")
+		} else {
+			out.Bool(bool(*in.Akismet))
+		}
+	}
+	out.RawByte('}')
+}
+func easyjsonD2b7633eDecode12(in *jlexer.Lexer, out *struct {
+	SummaryScore float64 `json:"summaryScore"`
+}) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "summaryScore":
+			out.SummaryScore = float64(in.Float64())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD2b7633eEncode12(out *jwriter.Writer, in struct {
+	SummaryScore float64 `json:"summaryScore"`
+}) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"summaryScore\":"
+		out.RawString(prefix[1:])
+		out.Float64(float64(in.SummaryScore))
+	}
+	out.RawByte('}')
 }
 func easyjsonD2b7633eDecode10(in *jlexer.Lexer, out *struct {
 	AssignedBy *string    `json:"assigned_by"`
@@ -2333,7 +2512,7 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy9(i
 				*out.Section = string(in.String())
 			}
 		case "settings":
-			easyjsonD2b7633eDecode11(in, &out.Settings)
+			easyjsonD2b7633eDecode13(in, &out.Settings)
 		case "modified_date":
 			if in.IsNull() {
 				in.Skip()
@@ -2473,7 +2652,7 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLegacy9(o
 	{
 		const prefix string = ",\"settings\":"
 		out.RawString(prefix)
-		easyjsonD2b7633eEncode11(out, in.Settings)
+		easyjsonD2b7633eEncode13(out, in.Settings)
 	}
 	{
 		const prefix string = ",\"modified_date\":"
@@ -2519,7 +2698,7 @@ func (v *Asset) UnmarshalJSON(data []byte) error {
 func (v *Asset) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy9(l, v)
 }
-func easyjsonD2b7633eDecode11(in *jlexer.Lexer, out *struct {
+func easyjsonD2b7633eDecode13(in *jlexer.Lexer, out *struct {
 	Moderation         *string `json:"moderation,omitempty"`
 	QuestionBoxContent *string `json:"questionBoxContent,omitempty"`
 	QuestionBoxEnable  *bool   `json:"questionBoxEnable,omitempty"`
@@ -2593,7 +2772,7 @@ func easyjsonD2b7633eDecode11(in *jlexer.Lexer, out *struct {
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncode11(out *jwriter.Writer, in struct {
+func easyjsonD2b7633eEncode13(out *jwriter.Writer, in struct {
 	Moderation         *string `json:"moderation,omitempty"`
 	QuestionBoxContent *string `json:"questionBoxContent,omitempty"`
 	QuestionBoxEnable  *bool   `json:"questionBoxEnable,omitempty"`
@@ -2692,15 +2871,15 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLegacy10(
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v31 interface{}
-					if m, ok := v31.(easyjson.Unmarshaler); ok {
+					var v33 interface{}
+					if m, ok := v33.(easyjson.Unmarshaler); ok {
 						m.UnmarshalEasyJSON(in)
-					} else if m, ok := v31.(json.Unmarshaler); ok {
+					} else if m, ok := v33.(json.Unmarshaler); ok {
 						_ = m.UnmarshalJSON(in.Raw())
 					} else {
-						v31 = in.Interface()
+						v33 = in.Interface()
 					}
-					(out.Metadata)[key] = v31
+					(out.Metadata)[key] = v33
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -2764,21 +2943,21 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLegacy10(
 			out.RawString(`null`)
 		} else {
 			out.RawByte('{')
-			v32First := true
-			for v32Name, v32Value := range in.Metadata {
-				if v32First {
-					v32First = false
+			v34First := true
+			for v34Name, v34Value := range in.Metadata {
+				if v34First {
+					v34First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v32Name))
+				out.String(string(v34Name))
 				out.RawByte(':')
-				if m, ok := v32Value.(easyjson.Marshaler); ok {
+				if m, ok := v34Value.(easyjson.Marshaler); ok {
 					m.MarshalEasyJSON(out)
-				} else if m, ok := v32Value.(json.Marshaler); ok {
+				} else if m, ok := v34Value.(json.Marshaler); ok {
 					out.Raw(m.MarshalJSON())
 				} else {
-					out.Raw(json.Marshal(v32Value))
+					out.Raw(json.Marshal(v34Value))
 				}
 			}
 			out.RawByte('}')
