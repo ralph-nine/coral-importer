@@ -176,7 +176,6 @@ func TranslateComment(tenantID string, in *Comment) *coral.Comment {
 		// Copy over the revision metadata for the last revision if it's set.
 		if in.Metadata != nil {
 			if in.Metadata.Perspective != nil {
-
 				// Try to get the perspective model from the map.
 				model := PreferredPerspectiveModel
 				perspective, ok := in.Metadata.Perspective[model]
