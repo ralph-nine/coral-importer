@@ -432,15 +432,16 @@ func ProcessCommentMap() pipeline.AggregatingProcessor {
 }
 
 func ProcessCommentActions(tenantID string, comments map[string][]string) pipeline.WritingProcessor {
-	return func(write pipeline.CollectionWriter, n *pipeline.TaskReaderInput) error {
+	return func(write pipeline.CollectionWriter, input *pipeline.TaskReaderInput) error {
 		// Parse the Action from the file.
 		var in Action
-		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
+		if err := easyjson.Unmarshal([]byte(input.Input), &in); err != nil {
 			return errors.Wrap(err, "could not parse an action")
 		}
 
 		// Ignore the action if it's not a comment action.
 		if in.ItemType != "COMMENTS" {
+			logrus.WithField("line", input.Line).Warn("skipping non-comment flag")
 			return nil
 		}
 
