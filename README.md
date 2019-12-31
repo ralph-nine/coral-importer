@@ -12,6 +12,53 @@ go install .
 
 ## Strategies
 
+### CSV
+
+```sh
+# This now provides the export files that can be processed by the importer.
+TENANT_ID=c2440817-464e-4a8f-8851-24effd8fee9d
+INPUT=data/csv
+OUTPUT=database
+
+coral-importer --quiet csv --input $INPUT --tenantID $TENANT_ID --output $OUTPUT 2> output.log
+```
+
+#### Format
+
+`data/csv/users.csv`:
+
+| #   | Column     | Type    | Required | Description                                                                                        |
+| --- | ---------- | ------- | -------- | -------------------------------------------------------------------------------------------------- |
+| 0   | id         | string  | yes      | User's ID.                                                                                         |
+| 1   | email      | string  | yes      | Email address of the User.                                                                         |
+| 2   | username   | string  | yes      | Username of the User.                                                                              |
+| 3   | role       | string  | no       | Role of the User, can be one of `COMMENTER`, `ADMIN`, or `MODERATOR` (Default `COMMENTER`).        |
+| 4   | banned     | boolean | no       | Can be one of `true` or `false` (Default `false`).                                                 |
+| 5   | created_at | string  | no       | [ISO8601](http://en.wikipedia.org/wiki/ISO_8601) formatted date string (Defaults to current date). |
+
+`data/csv/stories.csv`:
+
+| #   | Column       | Type   | Required | Description                                                                                                                            |
+| --- | ------------ | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 0   | id           | string | Yes      | ID of the Story.                                                                                                                       |
+| 1   | url          | string | Yes      | URL of the Story.                                                                                                                      |
+| 2   | title        | string | No       | Title of the Story (will be scraped on next visit).                                                                                    |
+| 3   | author       | string | No       | Author of the Story (will be scraped on next visit).                                                                                   |
+| 4   | published_at | string | No       | Publish date of the Story as a [ISO8601](http://en.wikipedia.org/wiki/ISO_8601) formatted date string (will be scraped on next visit). |
+| 5   | closed_at    | string | No       | Date as a [ISO8601](http://en.wikipedia.org/wiki/ISO_8601) formatted date string when commenting was closed (Default is unset).        |
+
+`data/csv/comments.csv`:
+
+| #   | Column     | Type   | Required | Description                                                                                                    |
+| --- | ---------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------- |
+| 0   | id         | string | Yes      | ID of the Comment.                                                                                             |
+| 1   | author_id  | string | Yes      | ID of the User that authored the Comment.                                                                      |
+| 2   | story_id   | string | Yes      | ID of the Story that this Comment was written on.                                                              |
+| 3   | created_at | string | Yes      | Date as a [ISO8601](http://en.wikipedia.org/wiki/ISO_8601) formatted date string when the Comment was written. |
+| 4   | body       | string | Yes      | Comment with limited formatting HTML. Non-formatting HTML will be removed on import.                           |
+| 5   | parent_id  | string | No       | ID of the Comment that this is a reply to (Default to unset, indicating that this is not a reply).             |
+| 6   | status     | string | No       | Status of the Comment, can be one of `APPROVED`, `REJECTED`, or `NONE` (Default's to `NONE`).                  |
+
 ### Legacy
 
 ```sh

@@ -48,19 +48,19 @@ func (r *Reconstructor) GetParent(commentID string) string {
 // GetAncestors will get the array of ancestors for a given Comment.
 func (r *Reconstructor) GetAncestors(commentID string) []string {
 	// Store the ancestors in an array.
-	ancestorIDs := make([]string, 0)
+	ancestorIDs := []string{}
 
 	parentID := r.GetParent(commentID)
 	for parentID != "" {
-		ancestorParentID, ok := r.parents[parentID]
-		if !ok {
-			return nil
-		}
-
 		// Add the ID of this comment to the ancestorIDs.
 		ancestorIDs = append(ancestorIDs, parentID)
 
 		// Store the reference to the ancestorParentID
+		ancestorParentID, ok := r.parents[parentID]
+		if !ok {
+			return ancestorIDs
+		}
+
 		parentID = ancestorParentID
 	}
 

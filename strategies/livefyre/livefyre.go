@@ -63,7 +63,7 @@ func Import(c *cli.Context) error {
 		folder,
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
-				pipeline.NewFileReader(commentsFileName),
+				pipeline.NewJSONFileReader(commentsFileName),
 				ProcessComments(tenantID, users),
 			),
 		),
@@ -86,7 +86,7 @@ func HandleUsers(tenantID, folder, usersFileName string) (map[string]string, err
 	users, err := pipeline.NewMapAggregator(
 		pipeline.MergeTaskAggregatorOutputPipelines(
 			pipeline.FanAggregatingProcessor(
-				pipeline.NewFileReader(usersFileName),
+				pipeline.NewJSONFileReader(usersFileName),
 				ProcessUsersMap(),
 			),
 		),

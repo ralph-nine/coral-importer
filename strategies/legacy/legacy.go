@@ -15,11 +15,6 @@ import (
 	"gitlab.com/coralproject/coral-importer/common/pipeline"
 )
 
-// CurrentMigrationVersion is the version representing the most recent migration
-// that this strategy is designed to handle. This should be updated as revisions
-// are applied to this strategy for future versions.
-const CurrentMigrationVersion int64 = 1574289134415
-
 var collections = []string{
 	"actions",
 	"assets",
@@ -48,20 +43,6 @@ func validateCollectionFilesExist(input string) error {
 // Import will handle a data import task for importing comments into Coral from
 // a legacy export.
 func Import(c *cli.Context) error {
-	logrus.WithField("currentMigrationVersion", CurrentMigrationVersion).Info("legacy importer")
-	if c.Bool("version") {
-		return nil
-	}
-
-	if c.Bool("forceSkipMigrationCheck") {
-		logrus.Warn("skipping migration check")
-	} else if c.Int64("migrationID") != CurrentMigrationVersion {
-		logrus.WithFields(logrus.Fields{
-			"migrationID":             c.Int("migrationID"),
-			"currentMigrationVersion": CurrentMigrationVersion,
-		}).Fatal("migration version mismatch, update importer to support new migrations or skip with --forceSkipMigrationCheck")
-	}
-
 	// Copy over the preferredPerspectiveModel from the flags.
 	PreferredPerspectiveModel = c.String("preferredPerspectiveModel")
 
@@ -95,7 +76,7 @@ func Import(c *cli.Context) error {
 		output,
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
-				pipeline.NewFileReader(usersFileName),
+				pipeline.NewJSONFileReader(usersFileName),
 				ProcessUsers(tenantID),
 			),
 		),
@@ -138,13 +119,13 @@ func HandleNonUsers(tenantID, input, output string) error {
 	commentMap, err := pipeline.NewMapAggregator(
 		pipeline.MergeTaskAggregatorOutputPipelines(
 			pipeline.FanAggregatingProcessor(
-				pipeline.NewFileReader(commentsFileName),
+				pipeline.NewJSONFileReader(commentsFileName),
 				ProcessCommentMap(),
 			),
 		),
 	)
 	if err != nil {
-		logrus.WithError(err).Error("could not process comment stories")
+		logrus.WithError(err).Error("could not process comments")
 		return err
 	}
 
@@ -155,7 +136,7 @@ func HandleNonUsers(tenantID, input, output string) error {
 		output,
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
-				pipeline.NewFileReader(actionsFileName),
+				pipeline.NewJSONFileReader(actionsFileName),
 				ProcessCommentActions(tenantID, commentMap["storyID"]),
 			),
 		),
@@ -171,7 +152,7 @@ func HandleNonUsers(tenantID, input, output string) error {
 	actionCounts, err := pipeline.NewSummer(
 		pipeline.MergeTaskSummerOutputPipelines(
 			pipeline.FanSummerProcessor(
-				pipeline.NewFileReader(actionCountsFileName),
+				pipeline.NewJSONFileReader(actionCountsFileName),
 				ProcessActionCounts(),
 			),
 		),
@@ -206,7 +187,7 @@ func HandleNonUsers(tenantID, input, output string) error {
 		output,
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
-				pipeline.NewFileReader(commentsFileName),
+				pipeline.NewJSONFileReader(commentsFileName),
 				ProcessComments(tenantID, actionCounts, reconstructor),
 			),
 		),
@@ -219,7 +200,7 @@ func HandleNonUsers(tenantID, input, output string) error {
 	statusCounts, err := pipeline.NewSummer(
 		pipeline.MergeTaskSummerOutputPipelines(
 			pipeline.FanSummerProcessor(
-				pipeline.NewFileReader(commentsFileName),
+				pipeline.NewJSONFileReader(commentsFileName),
 				ProcessCommentStatusMap(),
 			),
 		),
@@ -268,7 +249,7 @@ func HandleNonUsers(tenantID, input, output string) error {
 		output,
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
-				pipeline.NewFileReader(assetsFileName),
+				pipeline.NewJSONFileReader(assetsFileName),
 				ProcessStories(tenantID, statusCounts, actionCounts, reportedMap),
 			),
 		),
