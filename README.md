@@ -14,6 +14,18 @@ go install .
 
 ### CSV
 
+When importing vis CSV, each column must be provided, even if it is optional. In
+the case of the `data/csv/users.csv` file, you would at minimum want the
+something like following:
+
+```csv
+1,example@example.com,example,,,
+```
+
+Where you notice that the fields for `role`, `banned`, and `created_at` are not
+provided. If you attempted to provide a CSV file without those fields provided,
+it would error.
+
 ```sh
 # This now provides the export files that can be processed by the importer.
 TENANT_ID=c2440817-464e-4a8f-8851-24effd8fee9d
