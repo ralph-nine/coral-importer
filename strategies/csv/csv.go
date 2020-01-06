@@ -39,6 +39,8 @@ func Import(c *cli.Context) error {
 	// Mark when we started.
 	started := time.Now()
 
+	logrus.Debug("starting comment map processing")
+
 	// Write out all the comments to ${output}/comments.csv.
 	commentsFileName := filepath.Join(input, "comments.csv")
 	commentMap, err := pipeline.NewMapAggregator(
@@ -74,6 +76,9 @@ func Import(c *cli.Context) error {
 	// Delete the reference to the parentID map that we don't need any more.
 	delete(commentMap, "parentID")
 
+	startedSummerAt := time.Now()
+	logrus.Debug("counting comment status")
+
 	// Load all the comment statuses by reading the comments.json file again.
 	statusCounts, err := pipeline.NewSummer(
 		pipeline.MergeTaskSummerOutputPipelines(
@@ -88,6 +93,14 @@ func Import(c *cli.Context) error {
 		return err
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"took":    time.Since(startedSummerAt).String(),
+		"stories": len(statusCounts),
+	}).Debug("finished counting comment status")
+
+	startedCommentsAt := time.Now()
+	logrus.Debug("processing comments")
+
 	if err := pipeline.NewFileWriter(
 		output,
 		pipeline.MergeTaskWriterOutputPipelines(
@@ -100,6 +113,13 @@ func Import(c *cli.Context) error {
 		logrus.WithError(err).Error("could not process comments")
 		return err
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"took": time.Since(startedCommentsAt).String(),
+	}).Debug("finished processing comments")
+
+	startedUsersAt := time.Now()
+	logrus.Debug("processing users")
 
 	// Write out all the users to ${output}/users.csv.
 	usersFileName := filepath.Join(input, "users.csv")
@@ -116,6 +136,13 @@ func Import(c *cli.Context) error {
 		return err
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"took": time.Since(startedUsersAt).String(),
+	}).Debug("finished processing users")
+
+	startedStoriesAt := time.Now()
+	logrus.Debug("processing stories")
+
 	// Write out all the stories to ${output}/stories.csv.
 	storiesFileName := filepath.Join(input, "stories.csv")
 	if err := pipeline.NewFileWriter(
@@ -131,9 +158,12 @@ func Import(c *cli.Context) error {
 		return err
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"took": time.Since(startedStoriesAt).String(),
+	}).Debug("finished processing stories")
+
 	// Mark when we finished.
-	finished := time.Now()
-	logrus.WithField("took", finished.Sub(started).String()).Info("finished processing")
+	logrus.WithField("took", time.Since(started).String()).Info("finished processing")
 
 	return nil
 }
@@ -141,11 +171,7 @@ func Import(c *cli.Context) error {
 // IsHeaderRow will return true when the row contains the first field value as
 // "id".
 func IsHeaderRow(input *pipeline.TaskReaderInput) bool {
-	if strings.ToLower(input.Fields[0]) == "id" {
-		return true
-	}
-
-	return false
+	return strings.ToLower(input.Fields[0]) == "id"
 }
 
 // ProcessCommentMap will collect maps based on the comment data.
@@ -159,9 +185,9 @@ func ProcessCommentMap() pipeline.AggregatingProcessor {
 		c, err := ParseComment(input.Fields)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
-				"line":    input.Line,
-				"comment": input.Fields,
-			}).Warn("failed to process comment")
+				"line":   input.Line,
+				"fields": input.Fields,
+			}).Warn("failed to parse comment")
 			return nil
 		}
 
@@ -184,9 +210,9 @@ func ProcessCommentStatusMap() pipeline.SummerProcessor {
 		c, err := ParseComment(input.Fields)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
-				"line":    input.Line,
-				"comment": input.Fields,
-			}).Warn("failed to process comment")
+				"line":   input.Line,
+				"fields": input.Fields,
+			}).Warn("failed to parse comment")
 			return nil
 		}
 
@@ -197,23 +223,7 @@ func ProcessCommentStatusMap() pipeline.SummerProcessor {
 	}
 }
 
-// TranslateCommentStatus will convert the status that is expected as a part of
-// the CSV import to the correct Coral status implementing a safe fallback.
-func TranslateCommentStatus(status string) string {
-	switch strings.ToUpper(status) {
-	case "APPROVED":
-		return "APPROVED"
-	case "REJECTED":
-		return "REJECTED"
-	case "NONE":
-		fallthrough
-	default:
-		return "NONE"
-	}
-}
-
-// ProcessComments will parse each comment from the CSV input and emit comments
-// to be created.
+// ProcessComments will emit a comment for every valid CSV line in the input file.
 func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingProcessor {
 	// Do this once for each unique policy, and use the policy for the life of the program
 	// Policy creation/editing is not safe to use in multiple goroutines
@@ -228,9 +238,9 @@ func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingP
 		c, err := ParseComment(input.Fields)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
-				"line":    input.Line,
-				"comment": input.Fields,
-			}).Warn("failed to process comment")
+				"line":   input.Line,
+				"fields": input.Fields,
+			}).Warn("failed to parse comment")
 			return nil
 		}
 
@@ -260,11 +270,10 @@ func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingP
 			revision,
 		}
 		comment.ParentID = c.ParentID
+		comment.Status = TranslateCommentStatus(c.Status)
 
 		// ID of the parent is the same as the revision ID.
 		comment.ParentRevisionID = comment.ParentID
-
-		comment.Status = TranslateCommentStatus(c.Status)
 
 		// Add reconstructed data.
 		comment.ChildIDs = r.GetChildren(comment.ID)
@@ -273,9 +282,9 @@ func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingP
 
 		if err := common.Check(comment); err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
-				"line":    input.Line,
-				"comment": input.Fields,
-			}).Warn("failed to process comment")
+				"line":   input.Line,
+				"fields": input.Fields,
+			}).Warn("failed to process compiled comment")
 			return nil
 		}
 
@@ -287,6 +296,7 @@ func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingP
 	}
 }
 
+// ProcessStories will emit a story for every valid CSV line in the input file.
 func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, input *pipeline.TaskReaderInput) error {
 		// Ensure we skip the line if it's a header line.
@@ -297,14 +307,15 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 		s, err := ParseStory(input.Fields)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
-				"line":  input.Line,
-				"story": input.Fields,
-			}).Warn("failed to process story")
+				"line":   input.Line,
+				"fields": input.Fields,
+			}).Warn("failed to parse story")
 			return nil
 		}
 
 		story := coral.NewStory(tenantID)
 		story.ID = s.ID
+		story.URL = s.URL
 
 		// Get the status counts for this story.
 		storyStatusCounts, ok := statusCounts[story.ID]
@@ -320,8 +331,7 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 			story.CommentCounts.ModerationQueue.Queues.Unmoderated += story.CommentCounts.Status.Premod
 		}
 
-		story.URL = s.URL
-
+		// Copy over the metadata.
 		if s.Title != "" {
 			story.Metadata.Title = s.Title
 		}
@@ -338,6 +348,8 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 				Time: publishedAt,
 			}
 		}
+
+		// Copy over the closed at date if provided.
 		if s.ClosedAt != "" {
 			closedAt, err := time.Parse(time.RFC3339, s.ClosedAt)
 			if err != nil {
@@ -351,9 +363,9 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 
 		if err := common.Check(story); err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
-				"line":  input.Line,
-				"story": input.Fields,
-			}).Warn("failed to process story")
+				"line":   input.Line,
+				"fields": input.Fields,
+			}).Warn("failed to process compiled story")
 			return nil
 		}
 
@@ -365,6 +377,7 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 	}
 }
 
+// ProcessUsers will emit a user for every valid CSV line in the input file.
 func ProcessUsers(tenantID string) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, input *pipeline.TaskReaderInput) error {
 		// Ensure we skip the line if it's a header line.
@@ -375,19 +388,15 @@ func ProcessUsers(tenantID string) pipeline.WritingProcessor {
 		u, err := ParseUser(input.Fields)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
-				"line": input.Line,
-				"user": input.Fields,
-			}).Warn("failed to process user")
+				"line":   input.Line,
+				"fields": input.Fields,
+			}).Warn("failed to parse user")
 			return nil
 		}
 
 		// Parse the user from the file.
 		user := coral.NewUser(tenantID)
-
-		// id
 		user.ID = u.ID
-
-		// email
 		user.Email = u.Email
 
 		// created_at
@@ -414,16 +423,7 @@ func ProcessUsers(tenantID string) pipeline.WritingProcessor {
 		}
 
 		// role
-		switch strings.ToUpper(u.Role) {
-		case "ADMIN":
-			user.Role = "ADMIN"
-		case "MODERATOR":
-			user.Role = "MODERATOR"
-		case "COMMENTER":
-			user.Role = "COMMENTER"
-		default:
-			user.Role = "COMMENTER"
-		}
+		user.Role = TranslateUserRole(u.Role)
 
 		// banned
 		switch strings.ToLower(u.Banned) {
@@ -454,9 +454,9 @@ func ProcessUsers(tenantID string) pipeline.WritingProcessor {
 		// Check the user.
 		if err := common.Check(user); err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
-				"line": input.Line,
-				"user": input.Fields,
-			}).Warn("failed to process user")
+				"line":   input.Line,
+				"fields": input.Fields,
+			}).Warn("failed to process compiled user")
 			return nil
 		}
 
