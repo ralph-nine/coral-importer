@@ -17,6 +17,7 @@ import (
 	"gitlab.com/coralproject/coral-importer/common/pipeline"
 )
 
+// Import will perform the actual import process for the CSV strategy.
 func Import(c *cli.Context) error {
 	// tenantID is the ID of the Tenant that we are importing these documents
 	// for.
@@ -43,7 +44,7 @@ func Import(c *cli.Context) error {
 	commentMap, err := pipeline.NewMapAggregator(
 		pipeline.MergeTaskAggregatorOutputPipelines(
 			pipeline.FanAggregatingProcessor(
-				pipeline.NewCSVFileReader(commentsFileName, 7),
+				pipeline.NewCSVFileReader(commentsFileName, CommentColumns),
 				ProcessCommentMap(),
 			),
 		),
@@ -77,7 +78,7 @@ func Import(c *cli.Context) error {
 	statusCounts, err := pipeline.NewSummer(
 		pipeline.MergeTaskSummerOutputPipelines(
 			pipeline.FanSummerProcessor(
-				pipeline.NewCSVFileReader(commentsFileName, 7),
+				pipeline.NewCSVFileReader(commentsFileName, CommentColumns),
 				ProcessCommentStatusMap(),
 			),
 		),
@@ -91,7 +92,7 @@ func Import(c *cli.Context) error {
 		output,
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
-				pipeline.NewCSVFileReader(commentsFileName, 7),
+				pipeline.NewCSVFileReader(commentsFileName, CommentColumns),
 				ProcessComments(tenantID, reconstructor),
 			),
 		),
@@ -106,7 +107,7 @@ func Import(c *cli.Context) error {
 		output,
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
-				pipeline.NewCSVFileReader(usersFileName, 6),
+				pipeline.NewCSVFileReader(usersFileName, UserColumns),
 				ProcessUsers(tenantID),
 			),
 		),
@@ -121,7 +122,7 @@ func Import(c *cli.Context) error {
 		output,
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
-				pipeline.NewCSVFileReader(storiesFileName, 6),
+				pipeline.NewCSVFileReader(storiesFileName, StoryColumns),
 				ProcessStories(tenantID, statusCounts),
 			),
 		),
@@ -137,30 +138,67 @@ func Import(c *cli.Context) error {
 	return nil
 }
 
+// IsHeaderRow will return true when the row contains the first field value as
+// "id".
+func IsHeaderRow(input *pipeline.TaskReaderInput) bool {
+	if strings.ToLower(input.Fields[0]) == "id" {
+		return true
+	}
+
+	return false
+}
+
+// ProcessCommentMap will collect maps based on the comment data.
 func ProcessCommentMap() pipeline.AggregatingProcessor {
 	return func(writer pipeline.AggregationWriter, input *pipeline.TaskReaderInput) error {
 		// Ensure we skip the line if it's a header line.
-		if strings.ToLower(input.Fields[0]) == "id" {
+		if IsHeaderRow(input) {
 			return nil
 		}
 
-		writer("status", input.Fields[0], TranslateCommentStatus(input.Fields[6]))
-		writer("storyID", input.Fields[0], input.Fields[2])
-		writer("parentID", input.Fields[0], input.Fields[5])
+		c, err := ParseComment(input.Fields)
+		if err != nil {
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"line":    input.Line,
+				"comment": input.Fields,
+			}).Warn("failed to process comment")
+			return nil
+		}
+
+		writer("status", c.ID, TranslateCommentStatus(c.Status))
+		writer("storyID", c.ID, c.StoryID)
+		writer("parentID", c.ID, c.ParentID)
 
 		return nil
 	}
 }
 
+// ProcessCommentStatusMap will link up comment statuses with the story ID.
 func ProcessCommentStatusMap() pipeline.SummerProcessor {
 	return func(writer pipeline.SummerWriter, input *pipeline.TaskReaderInput) error {
+		// Ensure we skip the line if it's a header line.
+		if IsHeaderRow(input) {
+			return nil
+		}
+
+		c, err := ParseComment(input.Fields)
+		if err != nil {
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"line":    input.Line,
+				"comment": input.Fields,
+			}).Warn("failed to process comment")
+			return nil
+		}
+
 		// Add the status to the map referencing the story id.
-		writer(input.Fields[2], TranslateCommentStatus(input.Fields[6]), 1)
+		writer(c.StoryID, TranslateCommentStatus(c.Status), 1)
 
 		return nil
 	}
 }
 
+// TranslateCommentStatus will convert the status that is expected as a part of
+// the CSV import to the correct Coral status implementing a safe fallback.
 func TranslateCommentStatus(status string) string {
 	switch strings.ToUpper(status) {
 	case "APPROVED":
@@ -174,6 +212,8 @@ func TranslateCommentStatus(status string) string {
 	}
 }
 
+// ProcessComments will parse each comment from the CSV input and emit comments
+// to be created.
 func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingProcessor {
 	// Do this once for each unique policy, and use the policy for the life of the program
 	// Policy creation/editing is not safe to use in multiple goroutines
@@ -181,22 +221,31 @@ func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingP
 
 	return func(write pipeline.CollectionWriter, input *pipeline.TaskReaderInput) error {
 		// Ensure we skip the line if it's a header line.
-		if strings.ToLower(input.Fields[0]) == "id" {
+		if IsHeaderRow(input) {
 			return nil
 		}
 
-		createdAt, err := time.Parse(time.RFC3339, input.Fields[3])
+		c, err := ParseComment(input.Fields)
+		if err != nil {
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"line":    input.Line,
+				"comment": input.Fields,
+			}).Warn("failed to process comment")
+			return nil
+		}
+
+		createdAt, err := time.Parse(time.RFC3339, c.CreatedAt)
 		if err != nil {
 			return errors.Wrap(err, "could not parse created_at")
 		}
 
 		comment := coral.NewComment(tenantID)
-		comment.ID = input.Fields[0]
-		comment.AuthorID = input.Fields[1]
-		comment.StoryID = input.Fields[2]
+		comment.ID = c.ID
+		comment.AuthorID = c.AuthorID
+		comment.StoryID = c.StoryID
 		comment.CreatedAt.Time = createdAt
 
-		body := coral.HTML(p.Sanitize(input.Fields[4]))
+		body := coral.HTML(p.Sanitize(c.Body))
 
 		revision := coral.Revision{
 			ID:           comment.ID,
@@ -210,12 +259,12 @@ func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingP
 		comment.Revisions = []coral.Revision{
 			revision,
 		}
-		comment.ParentID = input.Fields[5]
+		comment.ParentID = c.ParentID
 
 		// ID of the parent is the same as the revision ID.
 		comment.ParentRevisionID = comment.ParentID
 
-		comment.Status = TranslateCommentStatus(input.Fields[6])
+		comment.Status = TranslateCommentStatus(c.Status)
 
 		// Add reconstructed data.
 		comment.ChildIDs = r.GetChildren(comment.ID)
@@ -223,7 +272,10 @@ func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingP
 		comment.AncestorIDs = r.GetAncestors(comment.ID)
 
 		if err := common.Check(comment); err != nil {
-			logrus.WithField("line", input.Line).WithField("comment", input.Fields).Warn("failed to process comment")
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"line":    input.Line,
+				"comment": input.Fields,
+			}).Warn("failed to process comment")
 			return nil
 		}
 
@@ -238,12 +290,21 @@ func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingP
 func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, input *pipeline.TaskReaderInput) error {
 		// Ensure we skip the line if it's a header line.
-		if strings.ToLower(input.Fields[0]) == "id" {
+		if IsHeaderRow(input) {
+			return nil
+		}
+
+		s, err := ParseStory(input.Fields)
+		if err != nil {
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"line":  input.Line,
+				"story": input.Fields,
+			}).Warn("failed to process story")
 			return nil
 		}
 
 		story := coral.NewStory(tenantID)
-		story.ID = input.Fields[0]
+		story.ID = s.ID
 
 		// Get the status counts for this story.
 		storyStatusCounts, ok := statusCounts[story.ID]
@@ -259,16 +320,16 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 			story.CommentCounts.ModerationQueue.Queues.Unmoderated += story.CommentCounts.Status.Premod
 		}
 
-		story.URL = input.Fields[1]
+		story.URL = s.URL
 
-		if input.Fields[2] != "" {
-			story.Metadata.Title = input.Fields[2]
+		if s.Title != "" {
+			story.Metadata.Title = s.Title
 		}
-		if input.Fields[3] != "" {
-			story.Metadata.Author = input.Fields[2]
+		if s.Author != "" {
+			story.Metadata.Author = s.Author
 		}
-		if input.Fields[4] != "" {
-			publishedAt, err := time.Parse(time.RFC3339, input.Fields[4])
+		if s.PublishedAt != "" {
+			publishedAt, err := time.Parse(time.RFC3339, s.PublishedAt)
 			if err != nil {
 				return errors.Wrap(err, "could not parse created_at")
 			}
@@ -277,8 +338,8 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 				Time: publishedAt,
 			}
 		}
-		if input.Fields[5] != "" {
-			closedAt, err := time.Parse(time.RFC3339, input.Fields[5])
+		if s.ClosedAt != "" {
+			closedAt, err := time.Parse(time.RFC3339, s.ClosedAt)
 			if err != nil {
 				return errors.Wrap(err, "could not parse created_at")
 			}
@@ -289,7 +350,10 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 		}
 
 		if err := common.Check(story); err != nil {
-			logrus.WithField("line", input.Line).WithField("story", input.Fields).Warn("failed to process story")
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"line":  input.Line,
+				"story": input.Fields,
+			}).Warn("failed to process story")
 			return nil
 		}
 
@@ -304,7 +368,16 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 func ProcessUsers(tenantID string) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, input *pipeline.TaskReaderInput) error {
 		// Ensure we skip the line if it's a header line.
-		if strings.ToLower(input.Fields[0]) == "id" {
+		if IsHeaderRow(input) {
+			return nil
+		}
+
+		u, err := ParseUser(input.Fields)
+		if err != nil {
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"line": input.Line,
+				"user": input.Fields,
+			}).Warn("failed to process user")
 			return nil
 		}
 
@@ -312,14 +385,14 @@ func ProcessUsers(tenantID string) pipeline.WritingProcessor {
 		user := coral.NewUser(tenantID)
 
 		// id
-		user.ID = input.Fields[0]
+		user.ID = u.ID
 
 		// email
-		user.Email = input.Fields[1]
+		user.Email = u.Email
 
 		// created_at
-		if input.Fields[5] != "" {
-			createdAt, err := time.Parse(time.RFC3339, input.Fields[5])
+		if u.CreatedAt != "" {
+			createdAt, err := time.Parse(time.RFC3339, u.CreatedAt)
 			if err != nil {
 				return errors.Wrap(err, "could not parse created_at")
 			}
@@ -330,7 +403,7 @@ func ProcessUsers(tenantID string) pipeline.WritingProcessor {
 		}
 
 		// username
-		user.Username = input.Fields[2]
+		user.Username = u.Username
 		user.Status.UsernameStatus.History = []coral.UserUsernameStatusHistory{
 			{
 				ID:        uuid.NewV1().String(),
@@ -341,8 +414,7 @@ func ProcessUsers(tenantID string) pipeline.WritingProcessor {
 		}
 
 		// role
-		role := strings.ToUpper(input.Fields[3])
-		switch role {
+		switch strings.ToUpper(u.Role) {
 		case "ADMIN":
 			user.Role = "ADMIN"
 		case "MODERATOR":
@@ -354,8 +426,7 @@ func ProcessUsers(tenantID string) pipeline.WritingProcessor {
 		}
 
 		// banned
-		banned := strings.ToLower(input.Fields[4])
-		switch banned {
+		switch strings.ToLower(u.Banned) {
 		case "true":
 			user.Status.BanStatus.Active = true
 			user.Status.BanStatus.History = []coral.UserBanStatusHistory{
@@ -382,7 +453,10 @@ func ProcessUsers(tenantID string) pipeline.WritingProcessor {
 
 		// Check the user.
 		if err := common.Check(user); err != nil {
-			logrus.WithField("line", input.Line).WithField("user", input.Fields).Warn("failed to process user")
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"line": input.Line,
+				"user": input.Fields,
+			}).Warn("failed to process user")
 			return nil
 		}
 
