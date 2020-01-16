@@ -118,6 +118,10 @@ type UserToken struct {
 	CreatedAt Time   `json:"createdAt"`
 }
 
+type UserCommentCounts struct {
+	Status CommentStatusCounts `json:"status"`
+}
+
 type User struct {
 	TenantID         string                 `json:"tenantID" validate:"required"`
 	ID               string                 `json:"id" conform:"trim" validate:"required"`
@@ -131,6 +135,7 @@ type User struct {
 	CreatedAt        Time                   `json:"createdAt" validate:"required"`
 	IgnoredUsers     []IgnoredUser          `json:"ignoredUsers"`
 	Tokens           []UserToken            `json:"tokens"`
+	CommentCounts    UserCommentCounts      `json:"commentCounts"`
 	LastDownloadedAt *Time                  `json:"lastDownloadedAt"`
 	ImportedAt       Time                   `json:"importedAt"`
 	Extra            map[string]interface{} `json:"extra"`

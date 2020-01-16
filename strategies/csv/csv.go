@@ -94,8 +94,7 @@ func Import(c *cli.Context) error {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"took":    time.Since(startedSummerAt).String(),
-		"stories": len(statusCounts),
+		"took": time.Since(startedSummerAt).String(),
 	}).Debug("finished counting comment status")
 
 	startedCommentsAt := time.Now()
@@ -128,7 +127,7 @@ func Import(c *cli.Context) error {
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
 				pipeline.NewCSVFileReader(usersFileName, UserColumns),
-				ProcessUsers(tenantID),
+				ProcessUsers(tenantID, statusCounts),
 			),
 		),
 	); err != nil {
@@ -216,8 +215,13 @@ func ProcessCommentStatusMap() pipeline.SummerProcessor {
 			return nil
 		}
 
+		status := TranslateCommentStatus(c.Status)
+
 		// Add the status to the map referencing the story id.
-		writer(c.StoryID, TranslateCommentStatus(c.Status), 1)
+		writer("story:"+c.StoryID, status, 1)
+
+		// Add the status to the map referencing the user id.
+		writer("user:"+c.AuthorID, status, 1)
 
 		return nil
 	}
@@ -318,7 +322,7 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 		story.URL = s.URL
 
 		// Get the status counts for this story.
-		storyStatusCounts, ok := statusCounts[story.ID]
+		storyStatusCounts, ok := statusCounts["story:"+story.ID]
 		if ok {
 			story.CommentCounts.Status.Approved = storyStatusCounts["APPROVED"]
 			story.CommentCounts.Status.None = storyStatusCounts["NONE"]
@@ -378,7 +382,7 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 }
 
 // ProcessUsers will emit a user for every valid CSV line in the input file.
-func ProcessUsers(tenantID string) pipeline.WritingProcessor {
+func ProcessUsers(tenantID string, statusCounts map[string]map[string]int) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, input *pipeline.TaskReaderInput) error {
 		// Ensure we skip the line if it's a header line.
 		if IsHeaderRow(input) {
@@ -398,6 +402,14 @@ func ProcessUsers(tenantID string) pipeline.WritingProcessor {
 		user := coral.NewUser(tenantID)
 		user.ID = u.ID
 		user.Email = u.Email
+
+		// Get the status counts for this user.
+		userStatusCounts, ok := statusCounts["user:"+user.ID]
+		if ok {
+			user.CommentCounts.Status.Approved = userStatusCounts["APPROVED"]
+			user.CommentCounts.Status.None = userStatusCounts["NONE"]
+			user.CommentCounts.Status.Rejected = userStatusCounts["REJECTED"]
+		}
 
 		// created_at
 		if u.CreatedAt != "" {

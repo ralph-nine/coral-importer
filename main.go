@@ -22,7 +22,7 @@ const (
 	// CurrentMigrationVersion is the version representing the most recent migration
 	// that this strategy is designed to handle. This should be updated as revisions
 	// are applied to this strategy for future versions.
-	CurrentMigrationVersion int64 = 1574289134415
+	CurrentMigrationVersion int64 = 1575649180000
 )
 
 func main() {

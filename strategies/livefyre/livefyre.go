@@ -1,6 +1,7 @@
 package livefyre
 
 import (
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -50,36 +51,6 @@ func Import(c *cli.Context) error {
 	started := time.Now()
 	logrus.Info("started")
 
-	// Process the users. The output users map will map any user's ID to their
-	// mapped user ID.
-	users, err := HandleUsers(tenantID, folder, usersFileName)
-	if err != nil {
-		logrus.WithError(err).Error("could not handle")
-		return err
-	}
-
-	// Create the processor that will write these entries out.
-	if err := pipeline.NewFileWriter(
-		folder,
-		pipeline.MergeTaskWriterOutputPipelines(
-			pipeline.FanWritingProcessors(
-				pipeline.NewJSONFileReader(commentsFileName),
-				ProcessComments(tenantID, users),
-			),
-		),
-	); err != nil {
-		logrus.WithError(err).Error("could not process comments and stories for writing")
-		return err
-	}
-
-	// Mark when we finished.
-	finished := time.Now()
-	logrus.WithField("took", finished.Sub(started).String()).Info("finished processing")
-
-	return nil
-}
-
-func HandleUsers(tenantID, folder, usersFileName string) (map[string]string, error) {
 	// Process the users file first because we need to de-duplicate users as
 	// they are parsed because LiveFyre did not lowercase email addresses,
 	// causing multiple users to be created for each email address variation.
@@ -92,27 +63,59 @@ func HandleUsers(tenantID, folder, usersFileName string) (map[string]string, err
 		),
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not aggregate users")
+		return errors.Wrap(err, "could not aggregate users")
 	}
 
 	logrus.WithField("users", len(users["id"])).Info("loaded users")
 
+	// Genreate the users association from the id map.
+	uniqueUsers := make(map[string]string)
+	for _, ids := range users["id"] {
+		for _, id := range ids {
+			uniqueUsers[id] = ids[0]
+		}
+	}
+
+	// Create the processor that will write these entries out.
 	if err := pipeline.NewFileWriter(
 		folder,
-		ProcessUsers(tenantID, users),
+		pipeline.MergeTaskWriterOutputPipelines(
+			pipeline.FanWritingProcessors(
+				pipeline.NewJSONFileReader(commentsFileName),
+				ProcessComments(tenantID, uniqueUsers),
+			),
+		),
 	); err != nil {
-		return nil, errors.Wrap(err, "could not write out users")
+		logrus.WithError(err).Error("could not process comments and stories for writing")
+		return err
+	}
+
+	// Load all the comment statuses by reading the comments.json file again.
+	statusCounts, err := pipeline.NewSummer(
+		pipeline.MergeTaskSummerOutputPipelines(
+			pipeline.FanSummerProcessor(
+				pipeline.NewJSONFileReader(filepath.Join(folder, "comments.json")),
+				ProcessCommentStatusMap(),
+			),
+		),
+	)
+	if err != nil {
+		logrus.WithError(err).Error("could not process status counts")
+		return err
+	}
+
+	if err := pipeline.NewFileWriter(
+		folder,
+		ProcessUsers(tenantID, users, statusCounts),
+	); err != nil {
+		return errors.Wrap(err, "could not write out users")
 	}
 
 	logrus.WithField("users", len(users["id"])).Info("wrote users")
 
-	// Genreate the users association from the id map.
-	out := make(map[string]string)
-	for _, ids := range users["id"] {
-		for _, id := range ids {
-			out[id] = ids[0]
-		}
-	}
+	// Mark when we finished.
+	finished := time.Now()
+	logrus.WithField("took", finished.Sub(started).String()).Info("finished processing")
 
-	return out, nil
+	return nil
 }

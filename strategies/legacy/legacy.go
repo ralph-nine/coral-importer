@@ -66,52 +66,6 @@ func Import(c *cli.Context) error {
 	// Mark when we started.
 	started := time.Now()
 
-	if err := HandleNonUsers(tenantID, input, output); err != nil {
-		return err
-	}
-
-	// Write out all the users to ${output}/users.json.
-	usersFileName := filepath.Join(input, "users.json")
-	if err := pipeline.NewFileWriter(
-		output,
-		pipeline.MergeTaskWriterOutputPipelines(
-			pipeline.FanWritingProcessors(
-				pipeline.NewJSONFileReader(usersFileName),
-				ProcessUsers(tenantID),
-			),
-		),
-	); err != nil {
-		logrus.WithError(err).Error("could not process users")
-		return err
-	}
-
-	// Mark when we finished.
-	finished := time.Now()
-	logrus.WithField("took", finished.Sub(started).String()).Info("finished processing")
-
-	return nil
-}
-
-func ProcessUsers(tenantID string) pipeline.WritingProcessor {
-	return func(write pipeline.CollectionWriter, n *pipeline.TaskReaderInput) error {
-		// Parse the user from the file.
-		var in User
-		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
-			logrus.WithField("line", n.Line).Error(err)
-			return errors.Wrap(err, "could not parse an user")
-		}
-
-		user := TranslateUser(tenantID, &in)
-
-		if err := write("users", user); err != nil {
-			return errors.Wrap(err, "couldn't write out user")
-		}
-
-		return nil
-	}
-}
-
-func HandleNonUsers(tenantID, input, output string) error {
 	// Load all the comment actions from the actions.json file.
 	actionsFileName := filepath.Join(input, "actions.json")
 	commentsFileName := filepath.Join(input, "comments.json")
@@ -258,7 +212,53 @@ func HandleNonUsers(tenantID, input, output string) error {
 		return err
 	}
 
+	// Write out all the users to ${output}/users.json.
+	usersFileName := filepath.Join(input, "users.json")
+	if err := pipeline.NewFileWriter(
+		output,
+		pipeline.MergeTaskWriterOutputPipelines(
+			pipeline.FanWritingProcessors(
+				pipeline.NewJSONFileReader(usersFileName),
+				ProcessUsers(tenantID, statusCounts),
+			),
+		),
+	); err != nil {
+		logrus.WithError(err).Error("could not process users")
+		return err
+	}
+
+	// Mark when we finished.
+	finished := time.Now()
+	logrus.WithField("took", finished.Sub(started).String()).Info("finished processing")
+
 	return nil
+}
+
+func ProcessUsers(tenantID string, statusCounts map[string]map[string]int) pipeline.WritingProcessor {
+	return func(write pipeline.CollectionWriter, n *pipeline.TaskReaderInput) error {
+		// Parse the user from the file.
+		var in User
+		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
+			logrus.WithField("line", n.Line).Error(err)
+			return errors.Wrap(err, "could not parse an user")
+		}
+
+		user := TranslateUser(tenantID, &in)
+
+		// Get the status counts for this story.
+		userStatusCounts := statusCounts["user:"+user.ID]
+		user.CommentCounts.Status.Approved = userStatusCounts["APPROVED"]
+		user.CommentCounts.Status.None = userStatusCounts["NONE"]
+		user.CommentCounts.Status.Premod = userStatusCounts["PREMOD"]
+		user.CommentCounts.Status.Rejected = userStatusCounts["REJECTED"]
+		user.CommentCounts.Status.SystemWithheld = userStatusCounts["SYSTEM_WITHHELD"]
+
+		if err := write("users", user); err != nil {
+			return errors.Wrap(err, "couldn't write out user")
+		}
+
+		return nil
+	}
 }
 
 func ProcessStories(tenantID string, statusCounts, actionCounts map[string]map[string]int, reportedMap map[string]int) pipeline.WritingProcessor {
@@ -272,7 +272,7 @@ func ProcessStories(tenantID string, statusCounts, actionCounts map[string]map[s
 		story := TranslateAsset(tenantID, &in)
 
 		// Get the status counts for this story.
-		storyStatusCounts := statusCounts[story.ID]
+		storyStatusCounts := statusCounts["story:"+story.ID]
 		story.CommentCounts.Status.Approved = storyStatusCounts["APPROVED"]
 		story.CommentCounts.Status.None = storyStatusCounts["NONE"]
 		story.CommentCounts.Status.Premod = storyStatusCounts["PREMOD"]
@@ -320,7 +320,10 @@ func ProcessCommentStatusMap() pipeline.SummerProcessor {
 		status := TranslateCommentStatus(in.Status)
 
 		// Add the status to the map referencing the story id.
-		writer(in.AssetID, status, 1)
+		writer("story:"+in.AssetID, status, 1)
+
+		// Add the status to the map referencing the user id.
+		writer("user:"+in.AuthorID, status, 1)
 
 		return nil
 	}

@@ -33,7 +33,7 @@ func ProcessUsersMap() pipeline.AggregatingProcessor {
 	}
 }
 
-func ProcessUsers(tenantID string, users map[string]map[string][]string) <-chan pipeline.TaskWriterOutput {
+func ProcessUsers(tenantID string, users map[string]map[string][]string, statusCounts map[string]map[string]int) <-chan pipeline.TaskWriterOutput {
 	out := make(chan pipeline.TaskWriterOutput)
 	go func() {
 		defer close(out)
@@ -57,6 +57,14 @@ func ProcessUsers(tenantID string, users map[string]map[string][]string) <-chan 
 				Email:       email,
 				DisplayName: displayNames[0],
 			}, now)
+
+			// Get the status counts for this user.
+			userStatusCounts := statusCounts[user.ID]
+			user.CommentCounts.Status.Approved = userStatusCounts["APPROVED"]
+			user.CommentCounts.Status.None = userStatusCounts["NONE"]
+			user.CommentCounts.Status.Premod = userStatusCounts["PREMOD"]
+			user.CommentCounts.Status.Rejected = userStatusCounts["REJECTED"]
+			user.CommentCounts.Status.SystemWithheld = userStatusCounts["SYSTEM_WITHHELD"]
 
 			// Serialize the user for output.
 			doc, err := easyjson.Marshal(user)

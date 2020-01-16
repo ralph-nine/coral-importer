@@ -125,3 +125,18 @@ func ProcessComments(tenantID string, authorIDs map[string]string) pipeline.Writ
 		return nil
 	}
 }
+
+func ProcessCommentStatusMap() pipeline.SummerProcessor {
+	return func(writer pipeline.SummerWriter, n *pipeline.TaskReaderInput) error {
+		// Parse the comment from the file.
+		var comment coral.Comment
+		if err := easyjson.Unmarshal([]byte(n.Input), &comment); err != nil {
+			return errors.Wrap(err, "could not parse an comment")
+		}
+
+		// Add the status to the map referencing the user id.
+		writer(comment.AuthorID, comment.Status, 1)
+
+		return nil
+	}
+}
