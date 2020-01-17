@@ -266,6 +266,7 @@ func ProcessStories(tenantID string, statusCounts, actionCounts map[string]map[s
 		// Parse the asset from the file.
 		var in Asset
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
+			logrus.WithField("line", n.Line).Error(err)
 			return errors.Wrap(err, "could not parse an asset")
 		}
 
@@ -313,6 +314,7 @@ func ProcessCommentStatusMap() pipeline.SummerProcessor {
 		// Parse the comment from the file.
 		var in Comment
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
+			logrus.WithField("line", n.Line).Error(err)
 			return errors.Wrap(err, "could not parse an comment")
 		}
 
@@ -334,6 +336,7 @@ func ProcessComments(tenantID string, actionCounts map[string]map[string]int, r 
 		// Parse the Comment from the file.
 		var in Comment
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
+			logrus.WithField("line", n.Line).Error(err)
 			return errors.Wrap(err, "could not parse an comment")
 		}
 
@@ -373,6 +376,7 @@ func ProcessActionCounts() pipeline.SummerProcessor {
 		// Parse the comment actions.
 		var in coral.CommentAction
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
+			logrus.WithField("line", n.Line).Error(err)
 			return errors.Wrap(err, "could not parse an action")
 		}
 
@@ -393,6 +397,7 @@ func ProcessCommentMap() pipeline.AggregatingProcessor {
 		// Parse the comment from the file.
 		var in Comment
 		if err := easyjson.Unmarshal([]byte(input.Input), &in); err != nil {
+			logrus.WithField("line", input.Line).Error(err)
 			return errors.Wrap(err, "could not parse a comment")
 		}
 
@@ -420,6 +425,7 @@ func ProcessCommentActions(tenantID string, comments map[string][]string) pipeli
 		// Parse the Action from the file.
 		var in Action
 		if err := easyjson.Unmarshal([]byte(input.Input), &in); err != nil {
+			logrus.WithField("line", input.Line).Error(err)
 			return errors.Wrap(err, "could not parse an action")
 		}
 

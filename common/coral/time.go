@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/pkg/errors"
 )
 
 type Time struct {
@@ -18,13 +18,31 @@ func (t Time) MarshalJSON() ([]byte, error) {
 }
 
 func (t *Time) UnmarshalJSON(data []byte) error {
-	input := map[string]time.Time{}
-	if err := json.Unmarshal(data, &input); err != nil {
-		logrus.WithError(err).Warn("could not parse time")
-		return nil
+	var tmp interface{}
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
 	}
 
-	t.Time = input["$date"]
+	switch v := tmp.(type) {
+	case float64:
+		// It's in a milliseconds representation, but in exponential format.
+		// Ex: 1524510261939e+12
+		t.Time = time.Unix(int64(v)/1000, 0)
+	case map[string]interface{}:
+		date, ok := v["$date"].(string)
+		if !ok || date == "" {
+			return errors.Errorf("invalid format: %#v", v)
+		}
+
+		tt, err := time.Parse(time.RFC3339, date)
+		if err != nil {
+			return err
+		}
+
+		t.Time = tt
+	default:
+		return errors.Errorf("unsupported time format: %v %T", string(data), tmp)
+	}
 
 	return nil
 }
