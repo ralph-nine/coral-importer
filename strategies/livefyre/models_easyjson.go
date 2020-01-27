@@ -252,6 +252,29 @@ func easyjsonD2b7633eDecodeGitlabComCoralprojectCoralImporterStrategiesLivefyre2
 			out.ParentID = int(in.Int())
 		case "author_id":
 			out.AuthorID = string(in.String())
+		case "likes":
+			if in.IsNull() {
+				in.Skip()
+				out.Likes = nil
+			} else {
+				in.Delim('[')
+				if out.Likes == nil {
+					if !in.IsDelim(']') {
+						out.Likes = make([]string, 0, 4)
+					} else {
+						out.Likes = []string{}
+					}
+				} else {
+					out.Likes = (out.Likes)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v4 string
+					v4 = string(in.String())
+					out.Likes = append(out.Likes, v4)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
 		case "state":
 			out.State = int(in.Int())
 		case "created":
@@ -291,6 +314,22 @@ func easyjsonD2b7633eEncodeGitlabComCoralprojectCoralImporterStrategiesLivefyre2
 		const prefix string = ",\"author_id\":"
 		out.RawString(prefix)
 		out.String(string(in.AuthorID))
+	}
+	{
+		const prefix string = ",\"likes\":"
+		out.RawString(prefix)
+		if in.Likes == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v5, v6 := range in.Likes {
+				if v5 > 0 {
+					out.RawByte(',')
+				}
+				out.String(string(v6))
+			}
+			out.RawByte(']')
+		}
 	}
 	{
 		const prefix string = ",\"state\":"

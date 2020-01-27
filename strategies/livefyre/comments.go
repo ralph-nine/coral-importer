@@ -3,6 +3,7 @@ package livefyre
 import (
 	easyjson "github.com/mailru/easyjson"
 	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/coralproject/coral-importer/common"
 	"gitlab.com/coralproject/coral-importer/common/coral"
@@ -36,6 +37,9 @@ func ProcessComments(tenantID string, authorIDs map[string]string) pipeline.Writ
 
 		// Reconstruct family relationships for these comments.
 		r := common.NewReconstructor()
+
+		// Store the reaction total for the story.
+		storyReactionTotal := 0
 
 		// Translate the comments.
 		for i, inc := range in.Comments {
@@ -78,6 +82,58 @@ func ProcessComments(tenantID string, authorIDs map[string]string) pipeline.Writ
 			// Add the comment to the reconstructor.
 			r.AddComment(comment)
 
+			// Look at the comment to see if there are any likes on it.
+			if inc.Likes != nil {
+				reactionTotal := 0
+				for _, likeUserID := range inc.Likes {
+					// Remap the like user ID to the one from the author map. If
+					// we can't remap the user id it means we don't have a user
+					// for this like, and therefore it shouldn't be imported
+					// either.
+					mappedLikeUserID := authorIDs[likeUserID]
+					if mappedLikeUserID == "" {
+						logrus.WithFields(logrus.Fields{
+							"storyID":   story.ID,
+							"commentID": inc.ID,
+							"like":      likeUserID,
+							"line":      n.Line,
+						}).Warn("could not find user ID of like in author map, not importing like")
+						continue
+					}
+
+					// Create a new Comment Action for this like.
+					action := coral.NewCommentAction(tenantID)
+					action.ID = uuid.NewV4().String()
+					action.ActionType = "REACTION"
+					action.CommentID = comment.ID
+					action.UserID = &mappedLikeUserID
+					action.CreatedAt = action.ImportedAt
+					action.CommentRevisionID = comment.ID
+					action.StoryID = story.ID
+
+					// Check the action to ensure we're validated.
+					if err := common.Check(action); err != nil {
+						return errors.Wrap(err, "checking failed output coral.CommentAction")
+					}
+
+					if err := write("commentActions", action); err != nil {
+						return errors.Wrap(err, "couldn't write out commentAction")
+					}
+
+					logrus.WithFields(logrus.Fields{
+						"storyID":   story.ID,
+						"commentID": comment.ID,
+						"line":      n.Line,
+					}).Debug("imported reaction")
+
+					reactionTotal++
+				}
+
+				// Add the reaction count to the comment.
+				comment.ActionCounts["REACTION"] = reactionTotal
+				storyReactionTotal += reactionTotal
+			}
+
 			// Add it to the story comments.
 			storyComments = append(storyComments, comment)
 		}
@@ -105,6 +161,7 @@ func ProcessComments(tenantID string, authorIDs map[string]string) pipeline.Writ
 		for _, comment := range storyComments {
 			story.IncrementCommentCounts(comment.Status)
 		}
+		story.CommentCounts.Action["REACTION"] = storyReactionTotal
 
 		// Send the story to the importer.
 		if err := write("stories", story); err != nil {

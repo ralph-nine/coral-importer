@@ -11,7 +11,7 @@ type CommentAction struct {
 	ActionType        string                 `json:"actionType" validate:"oneof=REACTION DONT_AGREE FLAG,required"`
 	CommentID         string                 `json:"commentID" validate:"required"`
 	CommentRevisionID string                 `json:"commentRevisionID" validate:"required"`
-	Reason            string                 `json:"reason,omitempty" validate:"oneof=COMMENT_DETECTED_BANNED_WORD COMMENT_DETECTED_LINKS COMMENT_DETECTED_PREMOD_USER COMMENT_DETECTED_RECENT_HISTORY COMMENT_DETECTED_REPEAT_POST COMMENT_DETECTED_SPAM COMMENT_DETECTED_SUSPECT_WORD COMMENT_DETECTED_TOXIC COMMENT_REPORTED_OFFENSIVE COMMENT_REPORTED_OTHER COMMENT_REPORTED_SPAM"`
+	Reason            string                 `json:"reason,omitempty" validate:"omitempty,oneof= COMMENT_DETECTED_BANNED_WORD COMMENT_DETECTED_LINKS COMMENT_DETECTED_PREMOD_USER COMMENT_DETECTED_RECENT_HISTORY COMMENT_DETECTED_REPEAT_POST COMMENT_DETECTED_SPAM COMMENT_DETECTED_SUSPECT_WORD COMMENT_DETECTED_TOXIC COMMENT_REPORTED_OFFENSIVE COMMENT_REPORTED_OTHER COMMENT_REPORTED_SPAM"`
 	AdditionalDetails string                 `json:"additionalDetails,omitempty"`
 	StoryID           string                 `json:"storyID" validate:"required"`
 	UserID            *string                `json:"userID" validate:"required"`

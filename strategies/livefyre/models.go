@@ -10,12 +10,13 @@ import (
 
 // Comment is the Comment as exported from the LiveFyre platform.
 type Comment struct {
-	ID       int    `json:"id" validate:"required"`
-	BodyHTML string `json:"body_html" validate:"required"`
-	ParentID int    `json:"parent_id"`
-	AuthorID string `json:"author_id" conform:"lower"`
-	State    int    `json:"state"`
-	Created  Time   `json:"created" validate:"required"`
+	ID       int      `json:"id" validate:"required"`
+	BodyHTML string   `json:"body_html" validate:"required"`
+	ParentID int      `json:"parent_id"`
+	AuthorID string   `json:"author_id" conform:"lower"`
+	Likes    []string `json:"likes" conform:"lower"`
+	State    int      `json:"state"`
+	Created  Time     `json:"created" validate:"required"`
 }
 
 // TranslateComment will copy over simple fields to the new coral.Comment.
