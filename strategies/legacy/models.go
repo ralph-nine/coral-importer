@@ -412,8 +412,8 @@ func TranslateUser(tenantID string, in *User) *coral.User {
 		user.Status.SuspensionStatus.History[i] = coral.UserSuspensionStatusHistory{
 			ID: uuid.NewV1().String(),
 			From: coral.TimeRange{
-				From: history.CreatedAt,
-				To:   history.Until,
+				Start:  history.CreatedAt,
+				Finish: history.Until,
 			},
 			Message:   history.Message,
 			CreatedAt: history.CreatedAt,

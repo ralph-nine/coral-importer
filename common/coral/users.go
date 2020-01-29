@@ -26,8 +26,8 @@ func NewUserNotifications() UserNotifications {
 }
 
 type TimeRange struct {
-	From Time `json:"from"`
-	To   Time `json:"to"`
+	Start  Time `json:"start"`
+	Finish Time `json:"finish"`
 }
 
 type UserSuspensionStatusHistory struct {

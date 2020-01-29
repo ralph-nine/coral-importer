@@ -1631,13 +1631,13 @@ func easyjson84c0690eDecodeGitlabComCoralprojectCoralImporterCommonCoral14(in *j
 			continue
 		}
 		switch key {
-		case "from":
+		case "start":
 			if data := in.Raw(); in.Ok() {
-				in.AddError((out.From).UnmarshalJSON(data))
+				in.AddError((out.Start).UnmarshalJSON(data))
 			}
-		case "to":
+		case "finish":
 			if data := in.Raw(); in.Ok() {
-				in.AddError((out.To).UnmarshalJSON(data))
+				in.AddError((out.Finish).UnmarshalJSON(data))
 			}
 		default:
 			in.SkipRecursive()
@@ -1654,14 +1654,14 @@ func easyjson84c0690eEncodeGitlabComCoralprojectCoralImporterCommonCoral14(out *
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"from\":"
+		const prefix string = ",\"start\":"
 		out.RawString(prefix[1:])
-		out.Raw((in.From).MarshalJSON())
+		out.Raw((in.Start).MarshalJSON())
 	}
 	{
-		const prefix string = ",\"to\":"
+		const prefix string = ",\"finish\":"
 		out.RawString(prefix)
-		out.Raw((in.To).MarshalJSON())
+		out.Raw((in.Finish).MarshalJSON())
 	}
 	out.RawByte('}')
 }
