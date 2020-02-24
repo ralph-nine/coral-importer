@@ -100,6 +100,10 @@ func main() {
 					Usage:    "ID of the Tenant to import for",
 					Required: true,
 				},
+				cli.BoolFlag{
+					Name:  "sso",
+					Usage: "when true, enables adding the SSO profile to generated users with the ID of the User",
+				},
 				cli.StringFlag{
 					Name:     "comments",
 					Usage:    "newline separated JSON input file containing comments",

@@ -47,6 +47,10 @@ func Import(c *cli.Context) error {
 	// ready for MongoDB import.
 	folder := c.String("output")
 
+	// sso when true indicates that we should create a sso profile for generated
+	// users.
+	sso := c.Bool("sso")
+
 	// Mark when we started.
 	started := time.Now()
 	logrus.Info("started")
@@ -106,7 +110,7 @@ func Import(c *cli.Context) error {
 
 	if err := pipeline.NewFileWriter(
 		folder,
-		ProcessUsers(tenantID, users, statusCounts),
+		ProcessUsers(tenantID, sso, users, statusCounts),
 	); err != nil {
 		return errors.Wrap(err, "could not write out users")
 	}

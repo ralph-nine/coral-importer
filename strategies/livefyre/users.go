@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/coralproject/coral-importer/common"
+	"gitlab.com/coralproject/coral-importer/common/coral"
 	"gitlab.com/coralproject/coral-importer/common/pipeline"
 )
 
@@ -33,7 +34,7 @@ func ProcessUsersMap() pipeline.AggregatingProcessor {
 	}
 }
 
-func ProcessUsers(tenantID string, users map[string]map[string][]string, statusCounts map[string]map[string]int) <-chan pipeline.TaskWriterOutput {
+func ProcessUsers(tenantID string, sso bool, users map[string]map[string][]string, statusCounts map[string]map[string]int) <-chan pipeline.TaskWriterOutput {
 	out := make(chan pipeline.TaskWriterOutput)
 	go func() {
 		defer close(out)
@@ -57,6 +58,14 @@ func ProcessUsers(tenantID string, users map[string]map[string][]string, statusC
 				Email:       email,
 				DisplayName: displayNames[0],
 			}, now)
+			if sso {
+				user.Profiles = append(user.Profiles, coral.UserProfile{
+
+					ID:           user.ID,
+					Type:         "sso",
+					LastIssuedAt: &user.CreatedAt,
+				})
+			}
 
 			// Get the status counts for this user.
 			userStatusCounts := statusCounts[user.ID]
