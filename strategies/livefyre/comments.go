@@ -20,6 +20,7 @@ func ProcessComments(tenantID string, authorIDs map[string]string) pipeline.Writ
 
 		// Check the input to ensure we're validated.
 		if err := common.Check(&in); err != nil {
+			logrus.WithField("line", n.Line).WithError(err).Error("cannot validate story")
 			return errors.Wrap(err, "checking failed input Story")
 		}
 
@@ -136,6 +137,13 @@ func ProcessComments(tenantID string, authorIDs map[string]string) pipeline.Writ
 
 			// Add it to the story comments.
 			storyComments = append(storyComments, comment)
+		}
+
+		if len(storyComments) == 0 {
+			logrus.WithFields(logrus.Fields{
+				"storyID": story.ID,
+				"line":    n.Line,
+			}).Warn("no comments imported from story")
 		}
 
 		// Send the comments off to the importer.

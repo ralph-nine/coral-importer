@@ -67,7 +67,7 @@ type Story struct {
 	ID       string    `json:"id" validate:"required"`
 	Title    string    `json:"title"`
 	Source   string    `json:"source" validate:"required,url"`
-	Comments []Comment `json:"comments" validate:"required"`
+	Comments []Comment `json:"comments"`
 	Created  Time      `json:"created"  validate:"required"`
 }
 
