@@ -153,7 +153,7 @@ func Import(c *cli.Context) error {
 			),
 		),
 	); err != nil {
-		logrus.WithError(err).Error("could not process users")
+		logrus.WithError(err).Error("could not process stories")
 		return err
 	}
 
@@ -304,7 +304,7 @@ func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingP
 func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, input *pipeline.TaskReaderInput) error {
 		// Ensure we skip the line if it's a header line.
-		if IsHeaderRow(input) {
+		if input.Line == 1 && IsHeaderRow(input) {
 			return nil
 		}
 
@@ -345,7 +345,7 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 		if s.PublishedAt != "" {
 			publishedAt, err := time.Parse(time.RFC3339, s.PublishedAt)
 			if err != nil {
-				return errors.Wrap(err, "could not parse created_at")
+				return errors.Wrap(err, "could not parse published_at")
 			}
 
 			story.Metadata.PublishedAt = &coral.Time{
@@ -357,7 +357,7 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 		if s.ClosedAt != "" {
 			closedAt, err := time.Parse(time.RFC3339, s.ClosedAt)
 			if err != nil {
-				return errors.Wrap(err, "could not parse created_at")
+				return errors.Wrap(err, "could not parse closed_at")
 			}
 
 			story.ClosedAt = &coral.Time{
