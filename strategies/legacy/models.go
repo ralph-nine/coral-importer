@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 	"gitlab.com/coralproject/coral-importer/common/coral"
 )
 
@@ -362,28 +362,29 @@ type User struct {
 	Metadata  *UserMetadata `json:"metadata"`
 }
 
-func TranslateUserProfile(user *coral.User, in *User, profile UserProfile) coral.UserProfile {
+func TranslateUserProfile(user *coral.User, in *User, profile UserProfile) *coral.UserProfile {
 	switch profile.Provider {
 	case "local":
 		user.Email = profile.ID
-		return coral.UserProfile{
+		return &coral.UserProfile{
 			ID:         profile.ID,
 			Type:       "local",
 			Password:   in.Password,
 			PasswordID: uuid.NewV4().String(),
 		}
 	case "facebook":
-		return coral.UserProfile{
+		return &coral.UserProfile{
 			ID:   profile.ID,
 			Type: "facebook",
 		}
 	case "google":
-		return coral.UserProfile{
+		return &coral.UserProfile{
 			ID:   profile.ID,
 			Type: "google",
 		}
 	default:
-		panic(errors.Errorf("unsupported profile provider: %s: %v", profile.Provider, in.ID))
+		logrus.WithField("provider", profile.Provider).Warn("unsupported provider not imported")
+		return nil
 	}
 }
 
@@ -401,9 +402,12 @@ func TranslateUser(tenantID string, in *User) *coral.User {
 		}
 	}
 	if len(in.Profiles) > 0 {
-		user.Profiles = make([]coral.UserProfile, len(in.Profiles))
-		for i, profile := range in.Profiles {
-			user.Profiles[i] = TranslateUserProfile(user, in, profile)
+		user.Profiles = make([]coral.UserProfile, 0, len(in.Profiles))
+		for _, profile := range in.Profiles {
+			profile := TranslateUserProfile(user, in, profile)
+			if profile != nil {
+				user.Profiles = append(user.Profiles, *profile)
+			}
 		}
 	}
 
