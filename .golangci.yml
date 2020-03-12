@@ -1,7 +1,6 @@
 linters:
   enable-all: true
-  disable:
-    ["lll", "gochecknoglobals", "funlen", "goconst", "gocognit", "wsl", "gomnd"]
+  disable: ["lll", "gochecknoglobals", "funlen", "goconst", "gocognit", "wsl"]
 
 run:
   skip-files:
