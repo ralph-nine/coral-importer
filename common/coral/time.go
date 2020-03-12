@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
 )
 
@@ -31,6 +32,13 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 	case map[string]interface{}:
 		date, ok := v["$date"].(string)
 		if !ok || date == "" {
+			// Try to handle the case where we get something that looks like
+			// this: {"$date":{"$numberLong":"-62075098782000"}}
+			if _, ok := v["$date"].(map[string]int64); ok {
+				logrus.Warn("saw a date in the format: { $date: { $numberLong: -000 } }")
+				return nil
+			}
+
 			return errors.Errorf("invalid format: %#v", v)
 		}
 
