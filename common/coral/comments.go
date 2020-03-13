@@ -35,6 +35,7 @@ type CommentTag struct {
 type Comment struct {
 	TenantID         string                 `json:"tenantID" validate:"required"`
 	ID               string                 `json:"id" conform:"trim" validate:"required"`
+	SiteID           string                 `json:"siteID" validate:"required"`
 	AncestorIDs      []string               `json:"ancestorIDs" validate:"required"`
 	ParentID         string                 `json:"parentID,omitempty" conform:"trim"`
 	ParentRevisionID string                 `json:"parentRevisionID,omitempty" conform:"trim"`
@@ -53,9 +54,10 @@ type Comment struct {
 }
 
 // NewComment will return an initialized Comment.
-func NewComment(tenantID string) *Comment {
+func NewComment(tenantID, siteID string) *Comment {
 	return &Comment{
 		TenantID:     tenantID,
+		SiteID:       siteID,
 		AncestorIDs:  []string{},
 		Revisions:    []Revision{},
 		ActionCounts: map[string]int{},

@@ -50,6 +50,9 @@ func Import(c *cli.Context) error {
 	// for.
 	tenantID := c.String("tenantID")
 
+	// siteID is the ID of the Site that we're importing records for.
+	siteID := c.String("siteID")
+
 	// output is the name of the folder where we are placing our outputted dumps
 	// ready for MongoDB import.
 	output := c.String("output")
@@ -91,7 +94,7 @@ func Import(c *cli.Context) error {
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
 				pipeline.NewJSONFileReader(actionsFileName),
-				ProcessCommentActions(tenantID, commentMap["storyID"]),
+				ProcessCommentActions(tenantID, siteID, commentMap["storyID"]),
 			),
 		),
 	); err != nil {
@@ -142,7 +145,7 @@ func Import(c *cli.Context) error {
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
 				pipeline.NewJSONFileReader(commentsFileName),
-				ProcessComments(tenantID, actionCounts, reconstructor),
+				ProcessComments(tenantID, siteID, actionCounts, reconstructor),
 			),
 		),
 	); err != nil {
@@ -204,7 +207,7 @@ func Import(c *cli.Context) error {
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
 				pipeline.NewJSONFileReader(assetsFileName),
-				ProcessStories(tenantID, statusCounts, actionCounts, reportedMap),
+				ProcessStories(tenantID, siteID, statusCounts, actionCounts, reportedMap),
 			),
 		),
 	); err != nil {
@@ -261,7 +264,7 @@ func ProcessUsers(tenantID string, statusCounts map[string]map[string]int) pipel
 	}
 }
 
-func ProcessStories(tenantID string, statusCounts, actionCounts map[string]map[string]int, reportedMap map[string]int) pipeline.WritingProcessor {
+func ProcessStories(tenantID, siteID string, statusCounts, actionCounts map[string]map[string]int, reportedMap map[string]int) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, n *pipeline.TaskReaderInput) error {
 		// Parse the asset from the file.
 		var in Asset
@@ -270,7 +273,7 @@ func ProcessStories(tenantID string, statusCounts, actionCounts map[string]map[s
 			return errors.Wrap(err, "could not parse an asset")
 		}
 
-		story := TranslateAsset(tenantID, &in)
+		story := TranslateAsset(tenantID, siteID, &in)
 
 		// Get the status counts for this story.
 		storyStatusCounts := statusCounts["story:"+story.ID]
@@ -331,7 +334,7 @@ func ProcessCommentStatusMap() pipeline.SummerProcessor {
 	}
 }
 
-func ProcessComments(tenantID string, actionCounts map[string]map[string]int, r *common.Reconstructor) pipeline.WritingProcessor {
+func ProcessComments(tenantID, siteID string, actionCounts map[string]map[string]int, r *common.Reconstructor) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, n *pipeline.TaskReaderInput) error {
 		// Parse the Comment from the file.
 		var in Comment
@@ -345,7 +348,7 @@ func ProcessComments(tenantID string, actionCounts map[string]map[string]int, r 
 			return errors.Wrap(err, "checking failed input Action")
 		}
 
-		comment := TranslateComment(tenantID, &in)
+		comment := TranslateComment(tenantID, siteID, &in)
 
 		commentActionCounts, ok := actionCounts[comment.ID]
 		if !ok {
@@ -420,7 +423,7 @@ func ProcessCommentMap() pipeline.AggregatingProcessor {
 	}
 }
 
-func ProcessCommentActions(tenantID string, comments map[string][]string) pipeline.WritingProcessor {
+func ProcessCommentActions(tenantID, siteID string, comments map[string][]string) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, input *pipeline.TaskReaderInput) error {
 		// Parse the Action from the file.
 		var in Action
@@ -441,7 +444,7 @@ func ProcessCommentActions(tenantID string, comments map[string][]string) pipeli
 		}
 
 		// Translate the action to a comment action.
-		action := TranslateCommentAction(tenantID, &in)
+		action := TranslateCommentAction(tenantID, siteID, &in)
 		storyID, ok := comments[action.CommentID]
 		if !ok || len(storyID) != 1 {
 			return nil

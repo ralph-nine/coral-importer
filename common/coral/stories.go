@@ -65,6 +65,7 @@ type StoryMetadata struct {
 type Story struct {
 	TenantID      string                 `json:"tenantID" validate:"required"`
 	ID            string                 `json:"id" conform:"trim" validate:"required"`
+	SiteID        string                 `json:"siteID" validate:"required"`
 	URL           string                 `json:"url" validate:"required,url"`
 	CommentCounts StoryCommentCounts     `json:"commentCounts"`
 	Settings      StorySettings          `json:"settings"`
@@ -101,9 +102,10 @@ func (s *Story) IncrementCommentCounts(status string) {
 }
 
 // NewStory will return an initialized Story.
-func NewStory(tenantID string) *Story {
+func NewStory(tenantID, siteID string) *Story {
 	return &Story{
 		TenantID:      tenantID,
+		SiteID:        siteID,
 		CommentCounts: NewStoryCommentCounts(),
 		Settings:      StorySettings{},
 		Metadata:      StoryMetadata{},

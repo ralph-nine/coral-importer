@@ -8,6 +8,7 @@ import "time"
 type CommentAction struct {
 	TenantID          string                 `json:"tenantID" validate:"required"`
 	ID                string                 `json:"id" conform:"trim" validate:"required"`
+	SiteID            string                 `json:"siteID" validate:"required"`
 	ActionType        string                 `json:"actionType" validate:"oneof=REACTION DONT_AGREE FLAG,required"`
 	CommentID         string                 `json:"commentID" validate:"required"`
 	CommentRevisionID string                 `json:"commentRevisionID" validate:"required"`
@@ -22,9 +23,10 @@ type CommentAction struct {
 }
 
 // NewCommentAction will return an initialized CommentAction.
-func NewCommentAction(tenantID string) *CommentAction {
+func NewCommentAction(tenantID, siteID string) *CommentAction {
 	return &CommentAction{
 		TenantID:   tenantID,
+		SiteID:     siteID,
 		Metadata:   map[string]interface{}{},
 		ImportedAt: Time{Time: time.Now()},
 	}

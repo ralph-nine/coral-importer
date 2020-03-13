@@ -40,6 +40,8 @@ func easyjsonF96a437cDecodeGitlabComCoralprojectCoralImporterCommonCoral(in *jle
 			out.TenantID = string(in.String())
 		case "id":
 			out.ID = string(in.String())
+		case "siteID":
+			out.SiteID = string(in.String())
 		case "actionType":
 			out.ActionType = string(in.String())
 		case "commentID":
@@ -145,6 +147,11 @@ func easyjsonF96a437cEncodeGitlabComCoralprojectCoralImporterCommonCoral(out *jw
 		const prefix string = ",\"id\":"
 		out.RawString(prefix)
 		out.String(string(in.ID))
+	}
+	{
+		const prefix string = ",\"siteID\":"
+		out.RawString(prefix)
+		out.String(string(in.SiteID))
 	}
 	{
 		const prefix string = ",\"actionType\":"

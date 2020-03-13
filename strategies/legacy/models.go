@@ -22,8 +22,8 @@ type Action struct {
 	CreatedAt  coral.Time             `json:"created_at"`
 }
 
-func TranslateCommentAction(tenantID string, action *Action) *coral.CommentAction {
-	commentAction := coral.NewCommentAction(tenantID)
+func TranslateCommentAction(tenantID, siteID string, action *Action) *coral.CommentAction {
+	commentAction := coral.NewCommentAction(tenantID, siteID)
 	commentAction.ID = action.ID
 
 	switch action.ActionType {
@@ -122,8 +122,8 @@ func TranslateCommentStatus(status string) string {
 	return status
 }
 
-func TranslateComment(tenantID string, in *Comment) *coral.Comment {
-	comment := coral.NewComment(tenantID)
+func TranslateComment(tenantID, siteID string, in *Comment) *coral.Comment {
+	comment := coral.NewComment(tenantID, siteID)
 	comment.ID = in.ID
 
 	if in.ParentID != nil {
@@ -237,8 +237,8 @@ type Asset struct {
 	PublicationDate *coral.Time `json:"publication_date"`
 }
 
-func TranslateAsset(tenantID string, asset *Asset) *coral.Story {
-	story := coral.NewStory(tenantID)
+func TranslateAsset(tenantID, siteID string, asset *Asset) *coral.Story {
+	story := coral.NewStory(tenantID, siteID)
 	story.ID = asset.ID
 	story.URL = asset.URL
 

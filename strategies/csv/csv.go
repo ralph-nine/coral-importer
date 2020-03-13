@@ -23,6 +23,9 @@ func Import(c *cli.Context) error {
 	// for.
 	tenantID := c.String("tenantID")
 
+	// siteID is the ID of the Site that we're importing records for.
+	siteID := c.String("siteID")
+
 	// output is the name of the folder where we are placing our outputted dumps
 	// ready for MongoDB import.
 	output := c.String("output")
@@ -105,7 +108,7 @@ func Import(c *cli.Context) error {
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
 				pipeline.NewCSVFileReader(commentsFileName, CommentColumns),
-				ProcessComments(tenantID, reconstructor),
+				ProcessComments(tenantID, siteID, reconstructor),
 			),
 		),
 	); err != nil {
@@ -149,7 +152,7 @@ func Import(c *cli.Context) error {
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
 				pipeline.NewCSVFileReader(storiesFileName, StoryColumns),
-				ProcessStories(tenantID, statusCounts),
+				ProcessStories(tenantID, siteID, statusCounts),
 			),
 		),
 	); err != nil {
@@ -228,7 +231,7 @@ func ProcessCommentStatusMap() pipeline.SummerProcessor {
 }
 
 // ProcessComments will emit a comment for every valid CSV line in the input file.
-func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingProcessor {
+func ProcessComments(tenantID, siteID string, r *common.Reconstructor) pipeline.WritingProcessor {
 	// Do this once for each unique policy, and use the policy for the life of the program
 	// Policy creation/editing is not safe to use in multiple goroutines
 	var p = bluemonday.UGCPolicy()
@@ -253,7 +256,7 @@ func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingP
 			return errors.Wrap(err, "could not parse created_at")
 		}
 
-		comment := coral.NewComment(tenantID)
+		comment := coral.NewComment(tenantID, siteID)
 		comment.ID = c.ID
 		comment.AuthorID = c.AuthorID
 		comment.StoryID = c.StoryID
@@ -301,7 +304,7 @@ func ProcessComments(tenantID string, r *common.Reconstructor) pipeline.WritingP
 }
 
 // ProcessStories will emit a story for every valid CSV line in the input file.
-func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pipeline.WritingProcessor {
+func ProcessStories(tenantID, siteID string, statusCounts map[string]map[string]int) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, input *pipeline.TaskReaderInput) error {
 		// Ensure we skip the line if it's a header line.
 		if input.Line == 1 && IsHeaderRow(input) {
@@ -317,7 +320,7 @@ func ProcessStories(tenantID string, statusCounts map[string]map[string]int) pip
 			return nil
 		}
 
-		story := coral.NewStory(tenantID)
+		story := coral.NewStory(tenantID, siteID)
 		story.ID = s.ID
 		story.URL = s.URL
 

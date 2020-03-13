@@ -35,6 +35,9 @@ func Import(c *cli.Context) error {
 	// for.
 	tenantID := c.String("tenantID")
 
+	// siteID is the ID of the Site that we're importing records for.
+	siteID := c.String("siteID")
+
 	// commentsFileName is the name of the file that that contains the comment
 	// exports from LiveFyre.
 	commentsFileName := c.String("comments")
@@ -86,7 +89,7 @@ func Import(c *cli.Context) error {
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
 				pipeline.NewJSONFileReader(commentsFileName),
-				ProcessComments(tenantID, uniqueUsers),
+				ProcessComments(tenantID, siteID, uniqueUsers),
 			),
 		),
 	); err != nil {

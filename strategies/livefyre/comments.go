@@ -10,7 +10,7 @@ import (
 	"gitlab.com/coralproject/coral-importer/common/pipeline"
 )
 
-func ProcessComments(tenantID string, authorIDs map[string]string) pipeline.WritingProcessor {
+func ProcessComments(tenantID, siteID string, authorIDs map[string]string) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, n *pipeline.TaskReaderInput) error {
 		// Parse the Story from the file.
 		var in Story
@@ -25,7 +25,7 @@ func ProcessComments(tenantID string, authorIDs map[string]string) pipeline.Writ
 		}
 
 		// Translate the Story to a coral.Story.
-		story := TranslateStory(tenantID, &in)
+		story := TranslateStory(tenantID, siteID, &in)
 
 		// Check the story to ensure we're validated.
 		if err := common.Check(story); err != nil {
@@ -72,7 +72,7 @@ func ProcessComments(tenantID string, authorIDs map[string]string) pipeline.Writ
 			inc.AuthorID = authorID
 
 			// Translate the Comment to a coral.Comment.
-			comment := TranslateComment(tenantID, &in.Comments[i])
+			comment := TranslateComment(tenantID, siteID, &in.Comments[i])
 			comment.StoryID = story.ID
 
 			// Check the comment to ensure we're validated.
@@ -103,7 +103,7 @@ func ProcessComments(tenantID string, authorIDs map[string]string) pipeline.Writ
 					}
 
 					// Create a new Comment Action for this like.
-					action := coral.NewCommentAction(tenantID)
+					action := coral.NewCommentAction(tenantID, siteID)
 					action.ID = uuid.NewV4().String()
 					action.ActionType = "REACTION"
 					action.CommentID = comment.ID

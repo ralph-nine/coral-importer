@@ -22,7 +22,7 @@ const (
 	// CurrentMigrationVersion is the version representing the most recent migration
 	// that this strategy is designed to handle. This should be updated as revisions
 	// are applied to this strategy for future versions.
-	CurrentMigrationVersion int64 = 1580404849316
+	CurrentMigrationVersion int64 = 1579189174931
 )
 
 func main() {
@@ -79,6 +79,11 @@ func main() {
 					Required: true,
 				},
 				cli.StringFlag{
+					Name:     "siteID",
+					Usage:    "ID of the Site to import for",
+					Required: true,
+				},
+				cli.StringFlag{
 					Name:     "input",
 					Usage:    "folder where the CSV input files are located",
 					Required: true,
@@ -98,6 +103,11 @@ func main() {
 				cli.StringFlag{
 					Name:     "tenantID",
 					Usage:    "ID of the Tenant to import for",
+					Required: true,
+				},
+				cli.StringFlag{
+					Name:     "siteID",
+					Usage:    "ID of the Site to import for",
 					Required: true,
 				},
 				cli.BoolFlag{
@@ -129,6 +139,11 @@ func main() {
 				cli.StringFlag{
 					Name:     "tenantID",
 					Usage:    "ID of the Tenant to import for",
+					Required: true,
+				},
+				cli.StringFlag{
+					Name:     "siteID",
+					Usage:    "ID of the Site to import for",
 					Required: true,
 				},
 				cli.StringFlag{

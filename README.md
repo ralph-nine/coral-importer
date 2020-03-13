@@ -29,10 +29,11 @@ it would error.
 ```sh
 # This now provides the export files that can be processed by the importer.
 TENANT_ID=c2440817-464e-4a8f-8851-24effd8fee9d
+SITE_ID=3f183f3d-205f-41da-881a-e5089057b78f
 INPUT=data/csv
 OUTPUT=database
 
-coral-importer --quiet csv --input $INPUT --tenantID $TENANT_ID --output $OUTPUT 2> output.log
+coral-importer --quiet csv --input $INPUT --tenantID $TENANT_ID --siteID $SITE_ID --output $OUTPUT 2> output.log
 ```
 
 #### Format
@@ -90,10 +91,11 @@ done
 
 # This now provides the export files that can be processed by the importer.
 TENANT_ID=c2440817-464e-4a8f-8851-24effd8fee9d
+SITE_ID=3f183f3d-205f-41da-881a-e5089057b78f
 INPUT=data/legacy
 OUTPUT=database
 
-coral-importer --quiet legacy --input $INPUT --tenantID $TENANT_ID --output $OUTPUT 2> output.log
+coral-importer --quiet legacy --input $INPUT --tenantID $TENANT_ID --siteID $SITE_ID --output $OUTPUT 2> output.log
 ```
 
 ### Livefyre
@@ -101,11 +103,12 @@ coral-importer --quiet legacy --input $INPUT --tenantID $TENANT_ID --output $OUT
 ```sh
 # Perform the import parsing operation.
 TENANT_ID=c2440817-464e-4a8f-8851-24effd8fee9d
+SITE_ID=3f183f3d-205f-41da-881a-e5089057b78f
 USER_INPUT=data/livefyre/users.json
 COMMENTS_INPUT=data/livefyre/comments.json
 OUTPUT=database
 
-coral-importer --quiet livefyre --users $USER_INPUT --comments $COMMENTS_INPUT --tenantID $TENANT_ID --output $OUTPUT 2> output.log
+coral-importer --quiet livefyre --users $USER_INPUT --comments $COMMENTS_INPUT --tenantID $TENANT_ID --siteID $SITE_ID --output $OUTPUT 2> output.log
 ```
 
 ## Importing

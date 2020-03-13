@@ -20,8 +20,8 @@ type Comment struct {
 }
 
 // TranslateComment will copy over simple fields to the new coral.Comment.
-func TranslateComment(tenantID string, in *Comment) *coral.Comment {
-	comment := coral.NewComment(tenantID)
+func TranslateComment(tenantID, siteID string, in *Comment) *coral.Comment {
+	comment := coral.NewComment(tenantID, siteID)
 	comment.ID = fmt.Sprintf("%d", in.ID)
 	if in.ParentID > 0 {
 		comment.ParentID = fmt.Sprintf("%d", in.ParentID)
@@ -72,8 +72,8 @@ type Story struct {
 }
 
 // TranslateStory will copy over simple fields to the new coral.Story.
-func TranslateStory(tenantID string, in *Story) *coral.Story {
-	story := coral.NewStory(tenantID)
+func TranslateStory(tenantID, siteID string, in *Story) *coral.Story {
+	story := coral.NewStory(tenantID, siteID)
 	story.ID = in.ID
 	story.URL = in.Source
 	story.Metadata.Title = in.Title
