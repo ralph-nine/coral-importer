@@ -13,8 +13,8 @@ type Comment struct {
 	ID       int      `json:"id" validate:"required"`
 	BodyHTML string   `json:"body_html" validate:"required"`
 	ParentID int      `json:"parent_id"`
-	AuthorID string   `json:"author_id" conform:"lower"`
-	Likes    []string `json:"likes" conform:"lower"`
+	AuthorID string   `json:"author_id"`
+	Likes    []string `json:"likes"`
 	State    int      `json:"state"`
 	Created  Time     `json:"created" validate:"required"`
 }
@@ -84,7 +84,7 @@ func TranslateStory(tenantID, siteID string, in *Story) *coral.Story {
 
 // User represents a User in the LiveFyre platform.
 type User struct {
-	ID          string `json:"id" validate:"required" conform:"lower"`
+	ID          string `json:"id" validate:"required"`
 	DisplayName string `json:"display_name"`
 	Email       string `json:"email" validate:"email,required" conform:"email,lower"`
 }
