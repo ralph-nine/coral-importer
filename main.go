@@ -22,7 +22,7 @@ const (
 	// CurrentMigrationVersion is the version representing the most recent migration
 	// that this strategy is designed to handle. This should be updated as revisions
 	// are applied to this strategy for future versions.
-	CurrentMigrationVersion int64 = 1579189174931
+	CurrentMigrationVersion int64 = 1582929716101
 )
 
 func main() {
@@ -82,6 +82,11 @@ func main() {
 					Name:     "siteID",
 					Usage:    "ID of the Site to import for",
 					Required: true,
+				},
+				cli.StringFlag{
+					Name:  "auth",
+					Usage: "type of profile to emit (One of \"sso\" or \"local\")",
+					Value: "sso",
 				},
 				cli.StringFlag{
 					Name:     "input",

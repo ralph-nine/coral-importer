@@ -34,6 +34,13 @@ func Import(c *cli.Context) error {
 	// from the MongoDB export.
 	input := c.String("input")
 
+	// auth is the identifier for the type of authentication profiles to be
+	// created for the users.
+	authMode := c.String("auth")
+	if authMode != "local" && authMode != "sso" {
+		return errors.Errorf("invalid --auth provided \"%s\", only \"sso\" or \"local\" is supported")
+	}
+
 	// Validate that the collection files we expect exist in the input folder.
 	if err := validateCollectionFilesExist(input); err != nil {
 		return err
@@ -130,7 +137,7 @@ func Import(c *cli.Context) error {
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
 				pipeline.NewCSVFileReader(usersFileName, UserColumns),
-				ProcessUsers(tenantID, statusCounts),
+				ProcessUsers(tenantID, statusCounts, authMode),
 			),
 		),
 	); err != nil {
@@ -385,7 +392,7 @@ func ProcessStories(tenantID, siteID string, statusCounts map[string]map[string]
 }
 
 // ProcessUsers will emit a user for every valid CSV line in the input file.
-func ProcessUsers(tenantID string, statusCounts map[string]map[string]int) pipeline.WritingProcessor {
+func ProcessUsers(tenantID string, statusCounts map[string]map[string]int, auth string) pipeline.WritingProcessor {
 	return func(write pipeline.CollectionWriter, input *pipeline.TaskReaderInput) error {
 		// Ensure we skip the line if it's a header line.
 		if IsHeaderRow(input) {
@@ -458,12 +465,23 @@ func ProcessUsers(tenantID string, statusCounts map[string]map[string]int) pipel
 			user.Status.BanStatus.Active = false
 		}
 
-		user.Profiles = []coral.UserProfile{
-			{
-				ID:           user.ID,
-				Type:         "sso",
-				LastIssuedAt: &user.CreatedAt,
-			},
+		if auth == "local" {
+			user.Profiles = []coral.UserProfile{
+				{
+					ID:         user.Email,
+					Type:       "local",
+					Password:   uuid.NewV4().String(),
+					PasswordID: uuid.NewV4().String(),
+				},
+			}
+		} else if auth == "sso" {
+			user.Profiles = []coral.UserProfile{
+				{
+					ID:           user.ID,
+					Type:         "sso",
+					LastIssuedAt: &user.CreatedAt,
+				},
+			}
 		}
 
 		// Check the user.
