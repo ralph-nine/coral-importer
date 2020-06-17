@@ -36,6 +36,24 @@ OUTPUT=database
 coral-importer --quiet csv --input $INPUT --tenantID $TENANT_ID --siteID $SITE_ID --output $OUTPUT 2> output.log
 ```
 
+#### Encoding
+
+The importer is built on GoLang which prefers UTF-8 encoded CSV text files. If you find yourself with a `Windows 1252` or `ISO 88592` encoded CSV file, we kindly suggest you pre-convert the file using your preferred tool. If your files are too big to open in an editor, we suggest using `iconv`.
+
+More details about `iconv` available [here](https://linux.die.net/man/1/iconv).
+
+_Example conversion from Windows 1252:_
+
+```
+iconv -f WINDOWS-1252 -t UTF8 < users.csv > users-clean.csv
+```
+
+_Example conversion from ISO 88592:_
+
+```
+iconv -f ISO88592 -t UTF8 < users.csv > users-clean.csv
+```
+
 #### Format
 
 `data/csv/users.csv`:
