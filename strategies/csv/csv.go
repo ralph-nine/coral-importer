@@ -363,6 +363,8 @@ func ProcessStories(tenantID, siteID string, statusCounts map[string]map[string]
 			}
 		}
 
+		story.CreatedAt.Time = story.ImportedAt.Time
+
 		// Copy over the closed at date if provided.
 		if s.ClosedAt != "" {
 			closedAt, err := time.Parse(time.RFC3339, s.ClosedAt)
