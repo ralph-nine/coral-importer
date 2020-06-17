@@ -269,7 +269,8 @@ func ProcessComments(tenantID, siteID string, r *common.Reconstructor) pipeline.
 		comment.StoryID = c.StoryID
 		comment.CreatedAt.Time = createdAt
 
-		body := coral.HTML(p.Sanitize(c.Body))
+		rawBody := strings.Replace(c.Body, "\n", "<br/>", -1)
+		body := coral.HTML(p.Sanitize(rawBody))
 
 		revision := coral.Revision{
 			ID:           comment.ID,
