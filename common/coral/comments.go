@@ -26,7 +26,7 @@ type Revision struct {
 
 // CommentTag is a Tag associated with a Comment in Coral.
 type CommentTag struct {
-	Type      string `json:"type" conform:"trim" validate:"oneof=STAFF FEATURED,required"`
+	Type      string `json:"type" conform:"trim" validate:"oneof=STAFF FEATURED REVIEW QUESTION,required"`
 	CreatedBy string `json:"createdBy,omitempty"`
 	CreatedAt Time   `json:"createdAt" validate:"required"`
 }

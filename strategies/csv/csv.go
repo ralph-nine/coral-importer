@@ -269,13 +269,21 @@ func ProcessComments(tenantID, siteID string, r *common.Reconstructor) pipeline.
 		comment.StoryID = c.StoryID
 		comment.CreatedAt.Time = createdAt
 
+		rawBody := strings.Replace(c.Body, "\n", "<br/>", -1)
+		body := coral.HTML(p.Sanitize(rawBody))
+
 		// Rating
 		if c.Rating > 0 {
 			comment.Rating = c.Rating
-		}
 
-		rawBody := strings.Replace(c.Body, "\n", "<br/>", -1)
-		body := coral.HTML(p.Sanitize(rawBody))
+			// If the comment has a rating and a body, then it is a review!
+			if body != "" {
+				comment.Tags = append(comment.Tags, coral.CommentTag{
+					Type:      "REVIEW",
+					CreatedAt: comment.CreatedAt,
+				})
+			}
+		}
 
 		revision := coral.Revision{
 			ID:           comment.ID,
