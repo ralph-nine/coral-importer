@@ -89,6 +89,7 @@ iconv -f ISO88592 -t UTF8 < users.csv > users-clean.csv
 | 4   | body       | string | Yes      | Comment with limited formatting HTML. Non-formatting HTML will be removed on import.                           |
 | 5   | parent_id  | string | No       | ID of the Comment that this is a reply to (Default to unset, indicating that this is not a reply).             |
 | 6   | status     | string | No       | Status of the Comment, can be one of `APPROVED`, `REJECTED`, or `NONE` (Default's to `NONE`).                  |
+| 7   | rating     | number | No       | Rating attached to the Comment                                                                                 |
 
 ### Legacy
 
@@ -172,8 +173,8 @@ Print all the active operations on your database with messages.
 
 ```js
 db.currentOp()
-  .inprog.filter(op => Boolean(op.msg))
-  .map(op => ({ ns: op.ns, msg: op.msg, command: op.command }));
+  .inprog.filter((op) => Boolean(op.msg))
+  .map((op) => ({ ns: op.ns, msg: op.msg, command: op.command }));
 ```
 
 ## Benchmarks

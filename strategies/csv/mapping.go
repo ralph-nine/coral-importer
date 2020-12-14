@@ -1,8 +1,10 @@
 package csv
 
 import (
+	"strconv"
 	"strings"
 
+	"github.com/pkg/errors"
 	"gitlab.com/coralproject/coral-importer/common"
 )
 
@@ -22,7 +24,7 @@ func TranslateCommentStatus(status string) string {
 }
 
 // CommentColumns is the number of expected columns in the comments.csv file.
-const CommentColumns = 7
+const CommentColumns = 8
 
 // Comment is the string representation of a coral.Comment as it is imported in
 // the CSV format.
@@ -31,9 +33,10 @@ type Comment struct {
 	AuthorID  string `conform:"trim" validate:"required"`
 	StoryID   string `conform:"trim" validate:"required"`
 	CreatedAt string `conform:"trim" validate:"required"`
-	Body      string `conform:"trim" validate:"required"`
+	Body      string `conform:"trim" validate:"required_without=Rating"`
 	ParentID  string `conform:"trim"`
 	Status    string `conform:"trim"`
+	Rating    int
 }
 
 // ParseComment will extract a Comment from the fields and perform validation on
@@ -47,6 +50,15 @@ func ParseComment(fields []string) (*Comment, error) {
 		Body:      fields[4],
 		ParentID:  fields[5],
 		Status:    fields[6],
+	}
+
+	if fields[7] != "" {
+		rating, err := strconv.ParseInt(fields[7], 10, 32)
+		if err != nil {
+			return nil, errors.Wrap(err, "cannot convert to int")
+		}
+
+		comment.Rating = int(rating)
 	}
 
 	if err := common.Check(&comment); err != nil {

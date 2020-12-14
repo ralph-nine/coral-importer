@@ -50,6 +50,7 @@ type Comment struct {
 	CreatedAt        Time                   `json:"createdAt" validate:"required"`
 	DeletedAt        *Time                  `json:"deletedAt,omitempty"`
 	ImportedAt       Time                   `json:"importedAt"`
+	Rating           int                    `json:"rating,omitempty"`
 	Extra            map[string]interface{} `json:"extra"`
 }
 
