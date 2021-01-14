@@ -48,6 +48,7 @@ type MessageBox struct {
 }
 
 type StorySettings struct {
+	Mode       *string     `json:"mode,omitempty"`
 	Moderation *string     `json:"moderation,omitempty"`
 	MessageBox *MessageBox `json:"messageBox,omitempty"`
 }

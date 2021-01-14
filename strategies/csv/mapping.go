@@ -69,7 +69,7 @@ func ParseComment(fields []string) (*Comment, error) {
 }
 
 // StoryColumns is the number of expected columns in the stories.csv file.
-const StoryColumns = 6
+const StoryColumns = 7
 
 // Story is the string representation of a coral.Story as it is imported in the
 // CSV format.
@@ -80,6 +80,7 @@ type Story struct {
 	Author      string `conform:"trim"`
 	PublishedAt string `conform:"trim"`
 	ClosedAt    string `conform:"trim"`
+	Mode        string `conform:"trim,upper" validate:"omitempty,oneof= COMMENTS QA RATINGS_AND_REVIEWS"`
 }
 
 // ParseStory will extract a Story from the fields and perform validation on the
@@ -92,6 +93,7 @@ func ParseStory(fields []string) (*Story, error) {
 		Author:      fields[3],
 		PublishedAt: fields[4],
 		ClosedAt:    fields[5],
+		Mode:        fields[6],
 	}
 
 	if err := common.Check(&story); err != nil {

@@ -77,6 +77,7 @@ iconv -f ISO88592 -t UTF8 < users.csv > users-clean.csv
 | 3   | author       | string | No       | Author of the Story (will be scraped on next visit).                                                                                   |
 | 4   | published_at | string | No       | Publish date of the Story as a [ISO8601](http://en.wikipedia.org/wiki/ISO_8601) formatted date string (will be scraped on next visit). |
 | 5   | closed_at    | string | No       | Date as a [ISO8601](http://en.wikipedia.org/wiki/ISO_8601) formatted date string when commenting was closed (Default is unset).        |
+| 6   | mode         | string | No       | Story mode, can be one of `COMMENTS`, `QA`, or `RATINGS_AND_REVIEWS` (Default `COMMENTS`)                                              |
 
 `data/csv/comments.csv`:
 

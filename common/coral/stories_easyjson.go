@@ -36,6 +36,16 @@ func easyjsonE08b5de9DecodeGitlabComCoralprojectCoralImporterCommonCoral(in *jle
 			continue
 		}
 		switch key {
+		case "mode":
+			if in.IsNull() {
+				in.Skip()
+				out.Mode = nil
+			} else {
+				if out.Mode == nil {
+					out.Mode = new(string)
+				}
+				*out.Mode = string(in.String())
+			}
 		case "moderation":
 			if in.IsNull() {
 				in.Skip()
@@ -70,10 +80,20 @@ func easyjsonE08b5de9EncodeGitlabComCoralprojectCoralImporterCommonCoral(out *jw
 	out.RawByte('{')
 	first := true
 	_ = first
-	if in.Moderation != nil {
-		const prefix string = ",\"moderation\":"
+	if in.Mode != nil {
+		const prefix string = ",\"mode\":"
 		first = false
 		out.RawString(prefix[1:])
+		out.String(string(*in.Mode))
+	}
+	if in.Moderation != nil {
+		const prefix string = ",\"moderation\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
 		out.String(string(*in.Moderation))
 	}
 	if in.MessageBox != nil {

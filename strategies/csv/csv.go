@@ -51,7 +51,7 @@ func Import(c *cli.Context) error {
 
 	logrus.Debug("starting comment map processing")
 
-	// Write out all the comments to ${output}/comments.csv.
+	// Read out all the comments from ${input}/comments.csv.
 	commentsFileName := filepath.Join(input, "comments.csv")
 	commentMap, err := pipeline.NewMapAggregator(
 		pipeline.MergeTaskAggregatorOutputPipelines(
@@ -67,6 +67,20 @@ func Import(c *cli.Context) error {
 	}
 
 	logrus.WithField("comments", len(commentMap["storyID"])).WithField("children", len(commentMap["parentID"])).Debug("finished loading comments into map")
+
+	logrus.Debug("starting story mode processing")
+	storiesFileName := filepath.Join(input, "stories.csv")
+
+	storyModeMap, err := pipeline.NewMapAggregator(
+		pipeline.MergeTaskAggregatorOutputPipelines(
+			pipeline.FanAggregatingProcessor(
+				pipeline.NewCSVFileReader(storiesFileName, StoryColumns),
+				ProcessStoriesModeMap(),
+			),
+		),
+	)
+
+	logrus.Debug("finished story mode processing")
 
 	startedReconstructionAt := time.Now()
 	logrus.Debug("reconstructing families based on parent id map")
@@ -115,7 +129,7 @@ func Import(c *cli.Context) error {
 		pipeline.MergeTaskWriterOutputPipelines(
 			pipeline.FanWritingProcessors(
 				pipeline.NewCSVFileReader(commentsFileName, CommentColumns),
-				ProcessComments(tenantID, siteID, reconstructor),
+				ProcessComments(tenantID, siteID, storyModeMap["storyMode"], reconstructor),
 			),
 		),
 	); err != nil {
@@ -130,7 +144,7 @@ func Import(c *cli.Context) error {
 	startedUsersAt := time.Now()
 	logrus.Debug("processing users")
 
-	// Write out all the users to ${output}/users.csv.
+	// Read the users from ${input}/users.csv.
 	usersFileName := filepath.Join(input, "users.csv")
 	if err := pipeline.NewFileWriter(
 		output,
@@ -152,8 +166,7 @@ func Import(c *cli.Context) error {
 	startedStoriesAt := time.Now()
 	logrus.Debug("processing stories")
 
-	// Write out all the stories to ${output}/stories.csv.
-	storiesFileName := filepath.Join(input, "stories.csv")
+	// Read all the stories from ${input}/stories.csv.
 	if err := pipeline.NewFileWriter(
 		output,
 		pipeline.MergeTaskWriterOutputPipelines(
@@ -208,6 +221,37 @@ func ProcessCommentMap() pipeline.AggregatingProcessor {
 	}
 }
 
+// ProcessStoriesModeMap will get all the story modes from the imported stories
+// if they differ from the default.
+func ProcessStoriesModeMap() pipeline.AggregatingProcessor {
+	return func(writer pipeline.AggregationWriter, input *pipeline.TaskReaderInput) error {
+		// Ensure we skip the line if it's a header line.
+		if IsHeaderRow(input) {
+			return nil
+		}
+
+		s, err := ParseStory(input.Fields)
+		if err != nil {
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"line":   input.Line,
+				"fields": input.Fields,
+			}).Warn("failed to parse story")
+			return nil
+		}
+
+		if s.Mode == "" || s.Mode == "COMMENTS" {
+			// We don't need to store information about stories that have the default
+			// story mode.
+			return nil
+		}
+
+		// Looks like this story has a non-standard story mode! Let's record it.
+		writer("storyMode", s.ID, s.Mode)
+
+		return nil
+	}
+}
+
 // ProcessCommentStatusMap will link up comment statuses with the story ID.
 func ProcessCommentStatusMap() pipeline.SummerProcessor {
 	return func(writer pipeline.SummerWriter, input *pipeline.TaskReaderInput) error {
@@ -238,7 +282,7 @@ func ProcessCommentStatusMap() pipeline.SummerProcessor {
 }
 
 // ProcessComments will emit a comment for every valid CSV line in the input file.
-func ProcessComments(tenantID, siteID string, r *common.Reconstructor) pipeline.WritingProcessor {
+func ProcessComments(tenantID, siteID string, storyModeMap map[string][]string, r *common.Reconstructor) pipeline.WritingProcessor {
 	// Do this once for each unique policy, and use the policy for the life of the program
 	// Policy creation/editing is not safe to use in multiple goroutines
 	var p = bluemonday.UGCPolicy()
@@ -272,16 +316,34 @@ func ProcessComments(tenantID, siteID string, r *common.Reconstructor) pipeline.
 		rawBody := strings.Replace(c.Body, "\n", "<br/>", -1)
 		body := coral.HTML(p.Sanitize(rawBody))
 
-		// Rating
-		if c.Rating > 0 {
-			comment.Rating = c.Rating
+		// Let's lookup the story mode for this comment.
+		var storyMode string
+		if storyModes, ok := storyModeMap[c.StoryID]; ok && len(storyModes) == 1 {
+			storyMode = storyModes[0]
+		}
 
-			// If the comment has a rating and a body, then it is a review!
-			if body != "" {
-				comment.Tags = append(comment.Tags, coral.CommentTag{
-					Type:      "REVIEW",
-					CreatedAt: comment.CreatedAt,
-				})
+		// Let's handle some story mode specific operations.
+		if storyMode == "RATINGS_AND_REVIEWS" {
+			if c.ParentID == "" {
+				// Rating
+				if c.Rating > 0 {
+					comment.Rating = c.Rating
+
+					// If the comment has a rating and a body, then it is a review!
+					if body != "" {
+						comment.Tags = append(comment.Tags, coral.CommentTag{
+							Type:      "REVIEW",
+							CreatedAt: comment.CreatedAt,
+						})
+					}
+				} else {
+					// This comment is a top level comment (no parent id) and does not
+					// have a rating, therefore we should add the question tag.
+					comment.Tags = append(comment.Tags, coral.CommentTag{
+						Type:      "QUESTION",
+						CreatedAt: comment.CreatedAt,
+					})
+				}
 			}
 		}
 
@@ -389,6 +451,11 @@ func ProcessStories(tenantID, siteID string, statusCounts map[string]map[string]
 			story.ClosedAt = &coral.Time{
 				Time: closedAt,
 			}
+		}
+
+		// Add the story mode if not default.
+		if s.Mode != "" && s.Mode != "COMMENTS" {
+			story.Settings.Mode = &s.Mode
 		}
 
 		if err := common.Check(story); err != nil {

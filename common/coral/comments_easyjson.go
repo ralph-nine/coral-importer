@@ -566,6 +566,8 @@ func easyjsonD09abad2DecodeGitlabComCoralprojectCoralImporterCommonCoral4(in *jl
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.ImportedAt).UnmarshalJSON(data))
 			}
+		case "rating":
+			out.Rating = int(in.Int())
 		case "extra":
 			if in.IsNull() {
 				in.Skip()
@@ -750,6 +752,11 @@ func easyjsonD09abad2EncodeGitlabComCoralprojectCoralImporterCommonCoral4(out *j
 		const prefix string = ",\"importedAt\":"
 		out.RawString(prefix)
 		out.Raw((in.ImportedAt).MarshalJSON())
+	}
+	if in.Rating != 0 {
+		const prefix string = ",\"rating\":"
+		out.RawString(prefix)
+		out.Int(int(in.Rating))
 	}
 	{
 		const prefix string = ",\"extra\":"
