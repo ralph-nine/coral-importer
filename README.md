@@ -198,3 +198,13 @@ do
   head -n1 ${collection}.json > ${collection}_single.json
 done
 ```
+
+## Changelog
+
+### v0.4.1
+
+- (coral) `createdAt` timestamps that are used by Coral as cursors now are
+  emitted as unique timestamps when not disabled with the
+  `--disableMonotonicCursorTimes` flag. This means that every timestamp emitted
+  that shares the same second time will automatically have it's ms time
+  incremented to prevent collisions.
