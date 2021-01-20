@@ -1,8 +1,6 @@
 project_name: coral-importer
 before:
   hooks:
-    # you may remove this if you don't use vgo
-    - go mod tidy
     # you may remove this if you don't need go generate
     - go generate ./...
 
