@@ -201,6 +201,11 @@ done
 
 ## Changelog
 
+### v0.4.3
+
+- (coral) monotonic timestamps will no longer reset and cause a conflict if more
+  than 1000 are created in the same second.
+
 ### v0.4.1
 
 - (coral) `createdAt` timestamps that are used by Coral as cursors now are
