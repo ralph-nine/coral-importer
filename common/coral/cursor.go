@@ -7,7 +7,7 @@ import (
 
 var createdAtCounter struct {
 	enabled bool
-	lastMs  time.Duration
+	last    time.Duration
 	counter time.Duration
 	mutex   sync.Mutex
 }
@@ -24,7 +24,7 @@ func NewCursorTime() Time {
 	now := time.Now()
 
 	if createdAtCounter.enabled {
-		unixMs := time.Duration(now.UnixNano()) * time.Nanosecond / time.Millisecond
+		unix := time.Duration(now.UnixNano()) * time.Nanosecond / time.Millisecond
 
 		// We increment the milliseconds value for each unique time.
 		createdAtCounter.mutex.Lock()
@@ -34,12 +34,12 @@ func NewCursorTime() Time {
 		// If the last timestamp we saw (which includes the counter) is greater than
 		// or equal to the current timestamp, then we should add one to both. If the
 		// current timestamp is less than the last one, we should reset the counter.
-		if createdAtCounter.lastMs >= unixMs {
+		if createdAtCounter.last >= unix {
 			createdAtCounter.counter += 1 * time.Millisecond
-			createdAtCounter.lastMs += 1 * time.Millisecond
+			createdAtCounter.last += 1 * time.Millisecond
 			counter = createdAtCounter.counter
 		} else {
-			createdAtCounter.lastMs = unixMs
+			createdAtCounter.last = unix
 			createdAtCounter.counter = 0
 			counter = 0
 		}
