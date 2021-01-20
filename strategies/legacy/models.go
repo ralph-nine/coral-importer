@@ -119,6 +119,7 @@ func TranslateCommentStatus(status string) string {
 	if status == "ACCEPTED" {
 		return "APPROVED"
 	}
+
 	return status
 }
 
@@ -186,6 +187,7 @@ func TranslateComment(tenantID, siteID string, in *Comment) *coral.Comment {
 						ok = true
 						model = modelName
 						perspective.SummaryScore = scores.SummaryScore
+
 						break
 					}
 				}
@@ -366,6 +368,7 @@ func TranslateUserProfile(user *coral.User, in *User, profile UserProfile) *cora
 	switch profile.Provider {
 	case "local":
 		user.Email = profile.ID
+
 		return &coral.UserProfile{
 			ID:         profile.ID,
 			Type:       "local",
@@ -384,6 +387,7 @@ func TranslateUserProfile(user *coral.User, in *User, profile UserProfile) *cora
 		}
 	default:
 		logrus.WithField("provider", profile.Provider).Warn("unsupported provider not imported")
+
 		return nil
 	}
 }

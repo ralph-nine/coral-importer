@@ -40,6 +40,7 @@ func HandleWritingProcessor(in <-chan TaskReaderInput, process WritingProcessor)
 				out <- TaskWriterOutput{
 					Error: errors.Wrap(n.Error, "error occurred on stack"),
 				}
+
 				return
 			}
 
@@ -47,6 +48,7 @@ func HandleWritingProcessor(in <-chan TaskReaderInput, process WritingProcessor)
 				out <- TaskWriterOutput{
 					Error: errors.Wrap(err, "error occurred during processing"),
 				}
+
 				return
 			}
 		}
@@ -61,5 +63,6 @@ func FanWritingProcessors(input <-chan TaskReaderInput, process WritingProcessor
 	for i := range out {
 		out[i] = HandleWritingProcessor(input, process)
 	}
+
 	return out
 }

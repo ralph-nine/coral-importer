@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"gitlab.com/coralproject/coral-importer/common"
@@ -57,7 +58,7 @@ func main() {
 	app.Before = func(c *cli.Context) error {
 		// Configure the logger.
 		if err := common.ConfigureLogger(c); err != nil {
-			return err
+			return errors.Wrap(err, "could not configure logger")
 		}
 
 		// Check that the imported needs updating.

@@ -41,6 +41,7 @@ func MergeTaskWriterOutputPipelines(cs []<-chan TaskWriterOutput) <-chan TaskWri
 		wg.Wait()
 		close(out)
 	}()
+
 	return out
 }
 
@@ -57,7 +58,7 @@ func NewFileWriter(folder string, input <-chan TaskWriterOutput) error {
 		if !ok {
 			// Ensure that the folder exists.
 			if _, err := os.Stat(folder); os.IsNotExist(err) {
-				if err := os.Mkdir(folder, 0755); err != nil {
+				if err := os.Mkdir(folder, 0o755); err != nil {
 					return errors.Wrap(err, "can't make output directory")
 				}
 			}

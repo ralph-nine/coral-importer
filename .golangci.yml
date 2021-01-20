@@ -1,6 +1,16 @@
 linters:
   enable-all: true
-  disable: ["lll", "gochecknoglobals", "funlen", "goconst", "gocognit", "wsl"]
+  disable:
+    - "lll"
+    - "gochecknoglobals"
+    - "funlen"
+    - "goconst"
+    - "gocognit"
+    - "wsl"
+    - "gomnd"
+    - "exhaustivestruct"
+    - "paralleltest"
+    - "nestif"
 
 run:
   skip-files:
@@ -10,6 +20,7 @@ issues:
   exclude-use-default: true
   exclude-rules:
     - text: "Using a reference for the variable on range scope .*"
+      path: common/pipeline
       linters:
         - scopelint
     - text: "ST1016: .*"

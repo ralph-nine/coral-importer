@@ -27,6 +27,7 @@ func NewCSVFileReader(fileName string, fieldsPerRecord int) <-chan TaskReaderInp
 			out <- TaskReaderInput{
 				Error: errors.Wrap(err, "could not open --input for reading"),
 			}
+
 			return
 		}
 		defer f.Close()
@@ -43,13 +44,14 @@ func NewCSVFileReader(fileName string, fieldsPerRecord int) <-chan TaskReaderInp
 		for {
 			fields, err := r.Read()
 			if err != nil {
-				if err == io.EOF {
+				if errors.Is(err, io.EOF) {
 					break
 				}
 
 				out <- TaskReaderInput{
 					Error: errors.Wrap(err, "couldn't read the file"),
 				}
+
 				return
 			}
 
@@ -79,6 +81,7 @@ func NewJSONFileReader(fileName string) <-chan TaskReaderInput {
 			out <- TaskReaderInput{
 				Error: errors.Wrap(err, "could not open --input for reading"),
 			}
+
 			return
 		}
 		defer f.Close()
@@ -93,13 +96,14 @@ func NewJSONFileReader(fileName string) <-chan TaskReaderInput {
 		for {
 			line, err := r.ReadString('\n')
 			if err != nil {
-				if err == io.EOF {
+				if errors.Is(err, io.EOF) {
 					break
 				}
 
 				out <- TaskReaderInput{
 					Error: errors.Wrap(err, "couldn't read the file"),
 				}
+
 				return
 			}
 

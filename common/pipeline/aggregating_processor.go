@@ -28,6 +28,7 @@ func HandleAggregatingProcessor(in <-chan TaskReaderInput, process AggregatingPr
 				out <- TaskAggregatorOutput{
 					Error: errors.Wrap(n.Error, "error occurred on stack"),
 				}
+
 				return
 			}
 
@@ -35,6 +36,7 @@ func HandleAggregatingProcessor(in <-chan TaskReaderInput, process AggregatingPr
 				out <- TaskAggregatorOutput{
 					Error: errors.Wrap(err, "error occurred during processing"),
 				}
+
 				return
 			}
 		}
@@ -49,5 +51,6 @@ func FanAggregatingProcessor(input <-chan TaskReaderInput, process AggregatingPr
 	for i := range out {
 		out[i] = HandleAggregatingProcessor(input, process)
 	}
+
 	return out
 }

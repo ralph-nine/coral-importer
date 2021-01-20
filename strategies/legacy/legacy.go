@@ -82,8 +82,7 @@ func Import(c *cli.Context) error {
 		),
 	)
 	if err != nil {
-		logrus.WithError(err).Error("could not process comments")
-		return err
+		return errors.Wrap(err, "could not process comments")
 	}
 
 	logrus.WithField("comments", len(commentMap["storyID"])).WithField("children", len(commentMap["parentID"])).Debug("finished loading comments into map")
@@ -98,8 +97,7 @@ func Import(c *cli.Context) error {
 			),
 		),
 	); err != nil {
-		logrus.WithError(err).Error("could not process comment actions")
-		return err
+		return errors.Wrap(err, "could not process comment actions")
 	}
 
 	logrus.Debug("finished writing out comment actions")
@@ -115,8 +113,7 @@ func Import(c *cli.Context) error {
 		),
 	)
 	if err != nil {
-		logrus.WithError(err).Error("could not process action counts")
-		return err
+		return errors.Wrap(err, "could not process action counts")
 	}
 
 	logrus.Debug("finished calculating comment action counts")
@@ -149,8 +146,7 @@ func Import(c *cli.Context) error {
 			),
 		),
 	); err != nil {
-		logrus.WithError(err).Error("could not process comments")
-		return err
+		return errors.Wrap(err, "could not process comments")
 	}
 
 	// Load all the comment statuses by reading the comments.json file again.
@@ -163,8 +159,7 @@ func Import(c *cli.Context) error {
 		),
 	)
 	if err != nil {
-		logrus.WithError(err).Error("could not process status counts")
-		return err
+		return errors.Wrap(err, "could not process status counts")
 	}
 
 	// Walk across all the comment's status maps so we can determine how many
@@ -211,8 +206,7 @@ func Import(c *cli.Context) error {
 			),
 		),
 	); err != nil {
-		logrus.WithError(err).Error("could not process stories")
-		return err
+		return errors.Wrap(err, "could not process stories")
 	}
 
 	// Write out all the users to ${output}/users.json.
@@ -226,8 +220,7 @@ func Import(c *cli.Context) error {
 			),
 		),
 	); err != nil {
-		logrus.WithError(err).Error("could not process users")
-		return err
+		return errors.Wrap(err, "could not process users")
 	}
 
 	// Mark when we finished.
@@ -243,6 +236,7 @@ func ProcessUsers(tenantID string, statusCounts map[string]map[string]int) pipel
 		var in User
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
 			logrus.WithField("line", n.Line).Error(err)
+
 			return errors.Wrap(err, "could not parse an user")
 		}
 
@@ -270,6 +264,7 @@ func ProcessStories(tenantID, siteID string, statusCounts, actionCounts map[stri
 		var in Asset
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
 			logrus.WithField("line", n.Line).Error(err)
+
 			return errors.Wrap(err, "could not parse an asset")
 		}
 
@@ -318,6 +313,7 @@ func ProcessCommentStatusMap() pipeline.SummerProcessor {
 		var in Comment
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
 			logrus.WithField("line", n.Line).Error(err)
+
 			return errors.Wrap(err, "could not parse an comment")
 		}
 
@@ -340,6 +336,7 @@ func ProcessComments(tenantID, siteID string, actionCounts map[string]map[string
 		var in Comment
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
 			logrus.WithField("line", n.Line).Error(err)
+
 			return errors.Wrap(err, "could not parse an comment")
 		}
 
@@ -380,6 +377,7 @@ func ProcessActionCounts() pipeline.SummerProcessor {
 		var in coral.CommentAction
 		if err := easyjson.Unmarshal([]byte(n.Input), &in); err != nil {
 			logrus.WithField("line", n.Line).Error(err)
+
 			return errors.Wrap(err, "could not parse an action")
 		}
 
@@ -401,12 +399,14 @@ func ProcessCommentMap() pipeline.AggregatingProcessor {
 		var in Comment
 		if err := easyjson.Unmarshal([]byte(input.Input), &in); err != nil {
 			logrus.WithField("line", input.Line).Error(err)
+
 			return errors.Wrap(err, "could not parse a comment")
 		}
 
 		// Check the input to ensure we're validated.
 		if err := common.Check(&in); err != nil {
 			logrus.WithError(err).WithField("line", input.Line).Warn("validation failed for input user")
+
 			return nil
 		}
 
@@ -429,12 +429,14 @@ func ProcessCommentActions(tenantID, siteID string, comments map[string][]string
 		var in Action
 		if err := easyjson.Unmarshal([]byte(input.Input), &in); err != nil {
 			logrus.WithField("line", input.Line).Error(err)
+
 			return errors.Wrap(err, "could not parse an action")
 		}
 
 		// Ignore the action if it's not a comment action.
 		if in.ItemType != "COMMENTS" {
 			logrus.WithField("line", input.Line).Warn("skipping non-comment flag")
+
 			return nil
 		}
 

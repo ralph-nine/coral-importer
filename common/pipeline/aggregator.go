@@ -40,6 +40,7 @@ func MergeTaskAggregatorOutputPipelines(cs []<-chan TaskAggregatorOutput) <-chan
 		wg.Wait()
 		close(out)
 	}()
+
 	return out
 }
 

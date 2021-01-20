@@ -21,6 +21,7 @@ func ProcessComments(tenantID, siteID string, authorIDs map[string]string) pipel
 		// Check the input to ensure we're validated.
 		if err := common.Check(&in); err != nil {
 			logrus.WithField("line", n.Line).WithError(err).Error("cannot validate story")
+
 			return errors.Wrap(err, "checking failed input Story")
 		}
 
@@ -50,11 +51,12 @@ func ProcessComments(tenantID, siteID string, authorIDs map[string]string) pipel
 					"commentID": inc.ID,
 					"line":      n.Line,
 				}).Warn("comment was missing author_id field")
+
 				continue
 			}
 
 			// Check the comment to ensure we're validated.
-			if err := common.Check(&inc); err != nil {
+			if err := common.Check(&in.Comments[i]); err != nil {
 				return errors.Wrapf(err, "checking failed input Comment for Story %s", story.ID)
 			}
 
@@ -67,6 +69,7 @@ func ProcessComments(tenantID, siteID string, authorIDs map[string]string) pipel
 					"authorID":  inc.AuthorID,
 					"line":      n.Line,
 				}).Warn("comment author_id did not exist in author map")
+
 				continue
 			}
 			inc.AuthorID = authorID
@@ -99,6 +102,7 @@ func ProcessComments(tenantID, siteID string, authorIDs map[string]string) pipel
 							"like":      likeUserID,
 							"line":      n.Line,
 						}).Warn("could not find user ID of like in author map, not importing like")
+
 						continue
 					}
 

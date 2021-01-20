@@ -38,12 +38,12 @@ func Import(c *cli.Context) error {
 	// created for the users.
 	authMode := c.String("auth")
 	if authMode != "local" && authMode != "sso" {
-		return errors.Errorf("invalid --auth provided \"%s\", only \"sso\" or \"local\" is supported")
+		return errors.Errorf("invalid --auth provided \"%s\", only \"sso\" or \"local\" is supported", authMode)
 	}
 
 	// Validate that the collection files we expect exist in the input folder.
 	if err := validateCollectionFilesExist(input); err != nil {
-		return err
+		return errors.Wrap(err, "could not validate that collection exists")
 	}
 
 	// Mark when we started.
@@ -62,8 +62,7 @@ func Import(c *cli.Context) error {
 		),
 	)
 	if err != nil {
-		logrus.WithError(err).Error("could not process comments")
-		return err
+		return errors.Wrap(err, "could not process comments")
 	}
 
 	logrus.WithField("comments", len(commentMap["storyID"])).WithField("children", len(commentMap["parentID"])).Debug("finished loading comments into map")
@@ -79,6 +78,9 @@ func Import(c *cli.Context) error {
 			),
 		),
 	)
+	if err != nil {
+		return errors.Wrap(err, "could not generate story mode map")
+	}
 
 	logrus.Debug("finished story mode processing")
 
@@ -113,8 +115,7 @@ func Import(c *cli.Context) error {
 		),
 	)
 	if err != nil {
-		logrus.WithError(err).Error("could not process status counts")
-		return err
+		return errors.Wrap(err, "could not process status counts")
 	}
 
 	logrus.WithFields(logrus.Fields{
@@ -133,8 +134,7 @@ func Import(c *cli.Context) error {
 			),
 		),
 	); err != nil {
-		logrus.WithError(err).Error("could not process comments")
-		return err
+		return errors.Wrap(err, "could not process comments")
 	}
 
 	logrus.WithFields(logrus.Fields{
@@ -155,8 +155,7 @@ func Import(c *cli.Context) error {
 			),
 		),
 	); err != nil {
-		logrus.WithError(err).Error("could not process users")
-		return err
+		return errors.Wrap(err, "could not process users")
 	}
 
 	logrus.WithFields(logrus.Fields{
@@ -176,8 +175,7 @@ func Import(c *cli.Context) error {
 			),
 		),
 	); err != nil {
-		logrus.WithError(err).Error("could not process stories")
-		return err
+		return errors.Wrap(err, "could not process stories")
 	}
 
 	logrus.WithFields(logrus.Fields{
@@ -210,6 +208,7 @@ func ProcessCommentMap() pipeline.AggregatingProcessor {
 				"line":   input.Line,
 				"fields": input.Fields,
 			}).Warn("failed to parse comment")
+
 			return nil
 		}
 
@@ -236,6 +235,7 @@ func ProcessStoriesModeMap() pipeline.AggregatingProcessor {
 				"line":   input.Line,
 				"fields": input.Fields,
 			}).Warn("failed to parse story")
+
 			return nil
 		}
 
@@ -266,6 +266,7 @@ func ProcessCommentStatusMap() pipeline.SummerProcessor {
 				"line":   input.Line,
 				"fields": input.Fields,
 			}).Warn("failed to parse comment")
+
 			return nil
 		}
 
@@ -285,7 +286,7 @@ func ProcessCommentStatusMap() pipeline.SummerProcessor {
 func ProcessComments(tenantID, siteID string, storyModeMap map[string][]string, r *common.Reconstructor) pipeline.WritingProcessor {
 	// Do this once for each unique policy, and use the policy for the life of the program
 	// Policy creation/editing is not safe to use in multiple goroutines
-	var p = bluemonday.UGCPolicy()
+	p := bluemonday.UGCPolicy()
 
 	return func(write pipeline.CollectionWriter, input *pipeline.TaskReaderInput) error {
 		// Ensure we skip the line if it's a header line.
@@ -299,6 +300,7 @@ func ProcessComments(tenantID, siteID string, storyModeMap map[string][]string, 
 				"line":   input.Line,
 				"fields": input.Fields,
 			}).Warn("failed to parse comment")
+
 			return nil
 		}
 
@@ -313,7 +315,7 @@ func ProcessComments(tenantID, siteID string, storyModeMap map[string][]string, 
 		comment.StoryID = c.StoryID
 		comment.CreatedAt.Time = createdAt
 
-		rawBody := strings.Replace(c.Body, "\n", "<br/>", -1)
+		rawBody := strings.ReplaceAll(c.Body, "\n", "<br/>")
 		body := coral.HTML(p.Sanitize(rawBody))
 
 		// Let's lookup the story mode for this comment.
@@ -375,6 +377,7 @@ func ProcessComments(tenantID, siteID string, storyModeMap map[string][]string, 
 				"line":   input.Line,
 				"fields": input.Fields,
 			}).Warn("failed to process compiled comment")
+
 			return nil
 		}
 
@@ -400,6 +403,7 @@ func ProcessStories(tenantID, siteID string, statusCounts map[string]map[string]
 				"line":   input.Line,
 				"fields": input.Fields,
 			}).Warn("failed to parse story")
+
 			return nil
 		}
 
@@ -461,6 +465,7 @@ func ProcessStories(tenantID, siteID string, statusCounts map[string]map[string]
 				"line":   input.Line,
 				"fields": input.Fields,
 			}).Warn("failed to process compiled story")
+
 			return nil
 		}
 
@@ -486,6 +491,7 @@ func ProcessUsers(tenantID string, statusCounts map[string]map[string]int, auth 
 				"line":   input.Line,
 				"fields": input.Fields,
 			}).Warn("failed to parse user")
+
 			return nil
 		}
 
@@ -569,6 +575,7 @@ func ProcessUsers(tenantID string, statusCounts map[string]map[string]int, auth 
 				"line":   input.Line,
 				"fields": input.Fields,
 			}).Warn("failed to process compiled user")
+
 			return nil
 		}
 
@@ -583,7 +590,7 @@ func ProcessUsers(tenantID string, statusCounts map[string]map[string]int, auth 
 // validateCollectionFilesExist will ensure that all the collection files that
 // we expect to be in the input directory actually exist.
 func validateCollectionFilesExist(input string) error {
-	var collections = []string{
+	collections := []string{
 		"users",
 		"stories",
 		"comments",

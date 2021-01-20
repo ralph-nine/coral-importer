@@ -28,6 +28,7 @@ func HandleSummerProcessor(in <-chan TaskReaderInput, process SummerProcessor) <
 				out <- TaskSummerOutput{
 					Error: errors.Wrap(n.Error, "error occurred on stack"),
 				}
+
 				return
 			}
 
@@ -35,6 +36,7 @@ func HandleSummerProcessor(in <-chan TaskReaderInput, process SummerProcessor) <
 				out <- TaskSummerOutput{
 					Error: errors.Wrap(err, "error occurred during processing"),
 				}
+
 				return
 			}
 		}
@@ -49,5 +51,6 @@ func FanSummerProcessor(input <-chan TaskReaderInput, process SummerProcessor) [
 	for i := range out {
 		out[i] = HandleSummerProcessor(input, process)
 	}
+
 	return out
 }

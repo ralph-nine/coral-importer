@@ -20,7 +20,7 @@ type Time struct {
 func (t *Time) UnmarshalJSON(buf []byte) error {
 	tt, err := time.Parse("2006-01-02T15:04:05", strings.Trim(string(buf), `"`))
 	if err != nil {
-		return err
+		return errors.Wrap(err, "could not parse livefyre time")
 	}
 
 	t.Time = tt
@@ -93,8 +93,7 @@ func Import(c *cli.Context) error {
 			),
 		),
 	); err != nil {
-		logrus.WithError(err).Error("could not process comments and stories for writing")
-		return err
+		return errors.Wrap(err, "could not process comments and stories for writing")
 	}
 
 	// Load all the comment statuses by reading the comments.json file again.
@@ -107,8 +106,7 @@ func Import(c *cli.Context) error {
 		),
 	)
 	if err != nil {
-		logrus.WithError(err).Error("could not process status counts")
-		return err
+		return errors.Wrap(err, "could not process status counts")
 	}
 
 	if err := pipeline.NewFileWriter(

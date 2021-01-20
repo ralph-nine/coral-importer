@@ -83,10 +83,8 @@ func (s *Story) IncrementCommentCounts(status string) {
 	switch status {
 	case "APPROVED":
 		s.CommentCounts.Status.Approved++
-		return
 	case "REJECTED":
 		s.CommentCounts.Status.Rejected++
-		return
 	case "NONE":
 		s.CommentCounts.Status.None++
 		s.CommentCounts.ModerationQueue.Total++

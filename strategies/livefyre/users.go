@@ -23,6 +23,7 @@ func ProcessUsersMap() pipeline.AggregatingProcessor {
 		// Check the input to ensure we're validated.
 		if err := common.Check(&in); err != nil {
 			logrus.WithError(err).WithField("line", input.Line).Warn("validation failed for input user")
+
 			return nil
 		}
 
@@ -81,6 +82,7 @@ func ProcessUsers(tenantID string, sso bool, users map[string]map[string][]strin
 				out <- pipeline.TaskWriterOutput{
 					Error: errors.Wrap(err, "could not marshal the coral.User"),
 				}
+
 				return
 			}
 
@@ -95,5 +97,6 @@ func ProcessUsers(tenantID string, sso bool, users map[string]map[string][]strin
 			}
 		}
 	}()
+
 	return out
 }

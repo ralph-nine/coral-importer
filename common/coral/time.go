@@ -21,7 +21,7 @@ func (t Time) MarshalJSON() ([]byte, error) {
 func (t *Time) UnmarshalJSON(data []byte) error {
 	var tmp interface{}
 	if err := json.Unmarshal(data, &tmp); err != nil {
-		return err
+		return errors.Wrap(err, "could not parse time JSON")
 	}
 
 	switch v := tmp.(type) {
@@ -36,6 +36,7 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 			// this: {"$date":{"$numberLong":"-62075098782000"}}
 			if _, ok := v["$date"].(map[string]int64); ok {
 				logrus.Warn("saw a date in the format: { $date: { $numberLong: -000 } }")
+
 				return nil
 			}
 
@@ -44,7 +45,7 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 
 		tt, err := time.Parse(time.RFC3339, date)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "could not parse $date format")
 		}
 
 		t.Time = tt

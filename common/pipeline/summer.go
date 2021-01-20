@@ -36,6 +36,7 @@ func MergeTaskSummerOutputPipelines(cs []<-chan TaskSummerOutput) <-chan TaskSum
 		wg.Wait()
 		close(out)
 	}()
+
 	return out
 }
 

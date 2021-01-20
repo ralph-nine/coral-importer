@@ -62,7 +62,7 @@ func ParseComment(fields []string) (*Comment, error) {
 	}
 
 	if err := common.Check(&comment); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "could not validate comment")
 	}
 
 	return &comment, nil
@@ -97,7 +97,7 @@ func ParseStory(fields []string) (*Story, error) {
 	}
 
 	if err := common.Check(&story); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "could not validate story")
 	}
 
 	return &story, nil
@@ -144,7 +144,7 @@ func ParseUser(fields []string) (*User, error) {
 	}
 
 	if err := common.Check(&user); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "could not validate user")
 	}
 
 	return &user, nil
