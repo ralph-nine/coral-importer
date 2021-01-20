@@ -1,7 +1,9 @@
 //go:generate easyjson -all stories.go
 package coral
 
-import "time"
+import (
+	"time"
+)
 
 type CommentModerationCountsPerQueue struct {
 	Unmoderated int `json:"unmoderated"`
@@ -111,5 +113,6 @@ func NewStory(tenantID, siteID string) *Story {
 		Settings:      StorySettings{},
 		Metadata:      StoryMetadata{},
 		ImportedAt:    Time{Time: time.Now()},
+		CreatedAt:     NewCursorTime(),
 	}
 }

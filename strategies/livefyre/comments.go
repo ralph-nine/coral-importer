@@ -108,7 +108,6 @@ func ProcessComments(tenantID, siteID string, authorIDs map[string]string) pipel
 					action.ActionType = "REACTION"
 					action.CommentID = comment.ID
 					action.UserID = &mappedLikeUserID
-					action.CreatedAt = action.ImportedAt
 					action.CommentRevisionID = comment.ID
 					action.StoryID = story.ID
 

@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"gitlab.com/coralproject/coral-importer/common"
+	"gitlab.com/coralproject/coral-importer/common/coral"
 	"gitlab.com/coralproject/coral-importer/strategies/csv"
 	"gitlab.com/coralproject/coral-importer/strategies/legacy"
 	"gitlab.com/coralproject/coral-importer/strategies/livefyre"
@@ -48,6 +49,10 @@ func main() {
 			Name:  "forceSkipMigrationCheck",
 			Usage: "used to skip the migration version check",
 		},
+		cli.BoolFlag{
+			Name:  "disableMonotonicCursorTimes",
+			Usage: "used to disable monotonic cursor times which adds a offset to the same times to ensure all emitted times are unique",
+		},
 	}
 	app.Before = func(c *cli.Context) error {
 		// Configure the logger.
@@ -63,6 +68,14 @@ func main() {
 				"migrationID":             c.GlobalInt("migrationID"),
 				"currentMigrationVersion": CurrentMigrationVersion,
 			}).Fatal("migration version mismatch, update importer to support new migrations or skip with --forceSkipMigrationCheck")
+		}
+
+		// Add support for the monotonic cursor times if not disabled.
+		if c.GlobalBool("disableMonotonicCursorTimes") {
+			logrus.Warn("monotonic cursor times are disabled, some entries may have duplicate cursor times")
+		} else {
+			logrus.Info("monotonic cursor times are enabled, cursor times will be offset automatically")
+			coral.EnableMonotonicCursorTime()
 		}
 
 		return nil

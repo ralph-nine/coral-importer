@@ -150,5 +150,6 @@ func NewUser(tenantID string) *User {
 		Tokens:         []UserToken{},
 		Role:           "COMMENTER",
 		ImportedAt:     Time{Time: time.Now()},
+		CreatedAt:      NewCursorTime(),
 	}
 }

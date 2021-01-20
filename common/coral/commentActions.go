@@ -29,5 +29,6 @@ func NewCommentAction(tenantID, siteID string) *CommentAction {
 		SiteID:     siteID,
 		Metadata:   map[string]interface{}{},
 		ImportedAt: Time{Time: time.Now()},
+		CreatedAt:  NewCursorTime(),
 	}
 }

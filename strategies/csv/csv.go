@@ -439,8 +439,6 @@ func ProcessStories(tenantID, siteID string, statusCounts map[string]map[string]
 			}
 		}
 
-		story.CreatedAt.Time = story.ImportedAt.Time
-
 		// Copy over the closed at date if provided.
 		if s.ClosedAt != "" {
 			closedAt, err := time.Parse(time.RFC3339, s.ClosedAt)
@@ -512,8 +510,6 @@ func ProcessUsers(tenantID string, statusCounts map[string]map[string]int, auth 
 			}
 
 			user.CreatedAt.Time = createdAt
-		} else {
-			user.CreatedAt.Time = time.Now()
 		}
 
 		// username
