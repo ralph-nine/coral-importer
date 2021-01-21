@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/coralproject/coral-importer/common/coral"
+	"coral-importer/common/coral"
 )
 
 // Comment is the Comment as exported from the LiveFyre platform.

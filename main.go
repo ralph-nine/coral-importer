@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"os"
 
+	"coral-importer/common"
+	"coral-importer/common/coral"
+	"coral-importer/strategies/csv"
+	"coral-importer/strategies/legacy"
+	"coral-importer/strategies/livefyre"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
-	"gitlab.com/coralproject/coral-importer/common"
-	"gitlab.com/coralproject/coral-importer/common/coral"
-	"gitlab.com/coralproject/coral-importer/strategies/csv"
-	"gitlab.com/coralproject/coral-importer/strategies/legacy"
-	"gitlab.com/coralproject/coral-importer/strategies/livefyre"
 )
 
 var (

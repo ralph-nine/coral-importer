@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 	"testing"
 
-	"gitlab.com/coralproject/coral-importer/common"
-	"gitlab.com/coralproject/coral-importer/common/coral"
+	"coral-importer/common"
+	"coral-importer/common/coral"
 )
 
 func TestComment(t *testing.T) {
 	input := `
 	{
 		"id": "5bfb82e6-b53c-4e2c-824e-e12d53470543",
+		"siteID": "2c193df7-2cd7-4653-8d0e-d69514e8f220",
 		"tenantID": "c2440817-464e-4a8f-8851-24effd8fee9d",
 		"childIDs": [],
 		"childCount": 0,

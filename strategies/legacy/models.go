@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"coral-importer/common/coral"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/coralproject/coral-importer/common/coral"
 )
 
 // Action is the Action as exported from MongoDB from legacy Talk.

@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
+	"coral-importer/common/pipeline"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
-	"gitlab.com/coralproject/coral-importer/common/pipeline"
 )
 
 // Time is the time.Time representation that LiveFyre uses.

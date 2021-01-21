@@ -1,6 +1,6 @@
 package common
 
-import "gitlab.com/coralproject/coral-importer/common/coral"
+import "coral-importer/common/coral"
 
 type Reconstructor struct {
 	parents  map[string]string

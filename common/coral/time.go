@@ -49,6 +49,13 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 		}
 
 		t.Time = tt
+	case string:
+		tt, err := time.Parse(time.RFC3339, v)
+		if err != nil {
+			return errors.Wrap(err, "could not parse $date format")
+		}
+
+		t.Time = tt
 	default:
 		return errors.Errorf("unsupported time format: %v %T", string(data), tmp)
 	}

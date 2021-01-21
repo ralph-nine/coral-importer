@@ -1,14 +1,9 @@
 # coral-importer
 
-## Installation
+![Test](https://github.com/coralproject/coral-importer/workflows/Test/badge.svg)
 
-You can visit the [Releases](https://gitlab.com/coralproject/coral-importer/-/releases) page for the most recent binary release
-of the application.
-
-```sh
-# Install the coral-importer.
-go install .
-```
+Visit the [Releases](https://github.com/coralproject/coral-importer/releases) page
+to download a release of the `coral-importer` tool.
 
 ## Strategies
 

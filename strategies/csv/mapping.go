@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"strings"
 
+	"coral-importer/common"
 	"github.com/pkg/errors"
-	"gitlab.com/coralproject/coral-importer/common"
 )
 
 // TranslateCommentStatus will convert the status that is expected as a part of

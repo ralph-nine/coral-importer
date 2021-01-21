@@ -1,22 +1,28 @@
 project_name: coral-importer
+
 before:
   hooks:
     # you may remove this if you don't need go generate
     - go generate ./...
 
 builds:
-  - goarch:
+  - goos:
+      - darwin
+      - linux
+    goarch:
       - amd64
 
 archives:
   - files:
       - README.md
 
+release:
+  github:
+    owner: coralproject
+    name: coral-importer
+
 checksum:
   name_template: "checksums.txt"
-
-snapshot:
-  name_template: "{{ .Tag }}-next"
 
 changelog:
   sort: asc

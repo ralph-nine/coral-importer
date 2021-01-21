@@ -1,13 +1,13 @@
 package livefyre
 
 import (
+	"coral-importer/common"
+	"coral-importer/common/coral"
+	"coral-importer/common/pipeline"
 	easyjson "github.com/mailru/easyjson"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/coralproject/coral-importer/common"
-	"gitlab.com/coralproject/coral-importer/common/coral"
-	"gitlab.com/coralproject/coral-importer/common/pipeline"
 )
 
 func ProcessComments(tenantID, siteID string, authorIDs map[string]string) pipeline.WritingProcessor {

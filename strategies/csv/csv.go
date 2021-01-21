@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"coral-importer/common"
+	"coral-importer/common/coral"
+	"coral-importer/common/pipeline"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
-	"gitlab.com/coralproject/coral-importer/common"
-	"gitlab.com/coralproject/coral-importer/common/coral"
-	"gitlab.com/coralproject/coral-importer/common/pipeline"
 )
 
 // Import will perform the actual import process for the CSV strategy.
