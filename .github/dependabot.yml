@@ -7,7 +7,6 @@ updates:
       interval: "daily"
     labels:
       - "dependencies"
-      - "🚀 merge it!"
   # Update Github Actions if they're found daily.
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -15,4 +14,3 @@ updates:
       interval: "daily"
     labels:
       - "dependencies"
-      - "🚀 merge it!"
