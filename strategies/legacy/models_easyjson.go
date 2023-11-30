@@ -528,6 +528,8 @@ func easyjsonD2b7633eDecodeGithubComCoralprojectCoralImporterStrategiesLegacy5(i
 			continue
 		}
 		switch key {
+		case "_id":
+			easyjsonD2b7633eDecodeGithubComCoralprojectCoralImporterCommonCoral(in, &out.MongoID)
 		case "id":
 			out.ID = string(in.String())
 		case "username":
@@ -636,8 +638,13 @@ func easyjsonD2b7633eEncodeGithubComCoralprojectCoralImporterStrategiesLegacy5(o
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"id\":"
+		const prefix string = ",\"_id\":"
 		out.RawString(prefix[1:])
+		easyjsonD2b7633eEncodeGithubComCoralprojectCoralImporterCommonCoral(out, in.MongoID)
+	}
+	{
+		const prefix string = ",\"id\":"
+		out.RawString(prefix)
 		out.String(string(in.ID))
 	}
 	{
@@ -1653,6 +1660,48 @@ func easyjsonD2b7633eEncode8(out *jwriter.Writer, in struct {
 	}
 	out.RawByte('}')
 }
+func easyjsonD2b7633eDecodeGithubComCoralprojectCoralImporterCommonCoral(in *jlexer.Lexer, out *coral.ObjectID) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "$oid":
+			out.OID = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD2b7633eEncodeGithubComCoralprojectCoralImporterCommonCoral(out *jwriter.Writer, in coral.ObjectID) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"$oid\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.OID))
+	}
+	out.RawByte('}')
+}
 func easyjsonD2b7633eDecodeGithubComCoralprojectCoralImporterStrategiesLegacy6(in *jlexer.Lexer, out *CommentTag) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
@@ -1887,6 +1936,8 @@ func easyjsonD2b7633eDecodeGithubComCoralprojectCoralImporterStrategiesLegacy8(i
 			continue
 		}
 		switch key {
+		case "_id":
+			easyjsonD2b7633eDecodeGithubComCoralprojectCoralImporterCommonCoral(in, &out.MongoID)
 		case "id":
 			out.ID = string(in.String())
 		case "asset_id":
@@ -2036,8 +2087,13 @@ func easyjsonD2b7633eEncodeGithubComCoralprojectCoralImporterStrategiesLegacy8(o
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"id\":"
+		const prefix string = ",\"_id\":"
 		out.RawString(prefix[1:])
+		easyjsonD2b7633eEncodeGithubComCoralprojectCoralImporterCommonCoral(out, in.MongoID)
+	}
+	{
+		const prefix string = ",\"id\":"
+		out.RawString(prefix)
 		out.String(string(in.ID))
 	}
 	{
@@ -2414,6 +2470,8 @@ func easyjsonD2b7633eDecodeGithubComCoralprojectCoralImporterStrategiesLegacy9(i
 			continue
 		}
 		switch key {
+		case "_id":
+			easyjsonD2b7633eDecodeGithubComCoralprojectCoralImporterCommonCoral(in, &out.MongoID)
 		case "id":
 			out.ID = string(in.String())
 		case "url":
@@ -2555,8 +2613,13 @@ func easyjsonD2b7633eEncodeGithubComCoralprojectCoralImporterStrategiesLegacy9(o
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"id\":"
+		const prefix string = ",\"_id\":"
 		out.RawString(prefix[1:])
+		easyjsonD2b7633eEncodeGithubComCoralprojectCoralImporterCommonCoral(out, in.MongoID)
+	}
+	{
+		const prefix string = ",\"id\":"
+		out.RawString(prefix)
 		out.String(string(in.ID))
 	}
 	{
@@ -2841,6 +2904,8 @@ func easyjsonD2b7633eDecodeGithubComCoralprojectCoralImporterStrategiesLegacy10(
 			continue
 		}
 		switch key {
+		case "_id":
+			easyjsonD2b7633eDecodeGithubComCoralprojectCoralImporterCommonCoral(in, &out.MongoID)
 		case "id":
 			out.ID = string(in.String())
 		case "action_type":
@@ -2902,8 +2967,13 @@ func easyjsonD2b7633eEncodeGithubComCoralprojectCoralImporterStrategiesLegacy10(
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"id\":"
+		const prefix string = ",\"_id\":"
 		out.RawString(prefix[1:])
+		easyjsonD2b7633eEncodeGithubComCoralprojectCoralImporterCommonCoral(out, in.MongoID)
+	}
+	{
+		const prefix string = ",\"id\":"
+		out.RawString(prefix)
 		out.String(string(in.ID))
 	}
 	{

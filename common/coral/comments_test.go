@@ -11,6 +11,7 @@ import (
 func TestComment(t *testing.T) {
 	input := `
 	{
+		"_id":{"$oid":"59964fb1eb7b3d0021f1eec1"},
 		"id": "5bfb82e6-b53c-4e2c-824e-e12d53470543",
 		"siteID": "2c193df7-2cd7-4653-8d0e-d69514e8f220",
 		"tenantID": "c2440817-464e-4a8f-8851-24effd8fee9d",

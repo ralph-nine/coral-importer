@@ -14,6 +14,7 @@ import (
 
 // Action is the Action as exported from MongoDB from legacy Talk.
 type Action struct {
+	MongoID    coral.ObjectID         `json:"_id"`
 	ID         string                 `json:"id"`
 	ActionType string                 `json:"action_type,intern"`
 	GroupID    string                 `json:"group_id,intern"`
@@ -26,6 +27,7 @@ type Action struct {
 
 func TranslateCommentAction(tenantID, siteID string, action *Action) *coral.CommentAction {
 	commentAction := coral.NewCommentAction(tenantID, siteID)
+	commentAction.MongoID = action.MongoID
 	commentAction.ID = action.ID
 
 	switch action.ActionType {
@@ -93,9 +95,10 @@ type CommentTag struct {
 }
 
 type Comment struct {
-	ID            string `json:"id"`
-	AssetID       string `json:"asset_id"`
-	Status        string `json:"status,intern"`
+	MongoID       coral.ObjectID `json:"_id"`
+	ID            string         `json:"id"`
+	AssetID       string         `json:"asset_id"`
+	Status        string         `json:"status,intern"`
 	StatusHistory []struct {
 		AssignedBy *string    `json:"assigned_by"`
 		Type       string     `json:"type,intern"`
@@ -126,6 +129,7 @@ func TranslateCommentStatus(status string) string {
 
 func TranslateComment(tenantID, siteID string, in *Comment) *coral.Comment {
 	comment := coral.NewComment(tenantID, siteID)
+	comment.MongoID = in.MongoID
 	comment.ID = in.ID
 
 	if in.ParentID != nil {
@@ -224,18 +228,19 @@ func TranslateComment(tenantID, siteID string, in *Comment) *coral.Comment {
 }
 
 type Asset struct {
-	ID            string      `json:"id"`
-	URL           string      `json:"url"`
-	ClosedAt      *coral.Time `json:"closedAt"`
-	ClosedMessage *string     `json:"closedMessage"`
-	CreatedAt     coral.Time  `json:"created_at"`
-	Scraped       *coral.Time `json:"scraped"`
-	Metadata      interface{} `json:"metadata"`
-	Title         *string     `json:"title"`
-	Author        *string     `json:"author"`
-	Description   *string     `json:"description"`
-	Image         *string     `json:"image"`
-	Section       *string     `json:"section"`
+	MongoID       coral.ObjectID `json:"_id"`
+	ID            string         `json:"id"`
+	URL           string         `json:"url"`
+	ClosedAt      *coral.Time    `json:"closedAt"`
+	ClosedMessage *string        `json:"closedMessage"`
+	CreatedAt     coral.Time     `json:"created_at"`
+	Scraped       *coral.Time    `json:"scraped"`
+	Metadata      interface{}    `json:"metadata"`
+	Title         *string        `json:"title"`
+	Author        *string        `json:"author"`
+	Description   *string        `json:"description"`
+	Image         *string        `json:"image"`
+	Section       *string        `json:"section"`
 	Settings      struct {
 		Moderation         *string `json:"moderation,omitempty"`
 		QuestionBoxContent *string `json:"questionBoxContent,omitempty"`
@@ -248,6 +253,7 @@ type Asset struct {
 
 func TranslateAsset(tenantID, siteID string, asset *Asset) *coral.Story {
 	story := coral.NewStory(tenantID, siteID)
+	story.MongoID = asset.MongoID
 	story.ID = asset.ID
 	story.URL = asset.URL
 
@@ -325,13 +331,14 @@ type UserMetadata struct {
 }
 
 type User struct {
-	ID           string        `json:"id"`
-	Username     string        `json:"username"`
-	Role         string        `json:"role,intern"`
-	Password     string        `json:"password"`
-	IgnoredUsers []string      `json:"ignoresUsers"`
-	Profiles     []UserProfile `json:"profiles"`
-	Tokens       []UserToken   `json:"tokens"`
+	MongoID      coral.ObjectID `json:"_id"`
+	ID           string         `json:"id"`
+	Username     string         `json:"username"`
+	Role         string         `json:"role,intern"`
+	Password     string         `json:"password"`
+	IgnoredUsers []string       `json:"ignoresUsers"`
+	Profiles     []UserProfile  `json:"profiles"`
+	Tokens       []UserToken    `json:"tokens"`
 	Status       struct {
 		Username struct {
 			Status  string `json:"status,intern"`
@@ -404,6 +411,7 @@ func TranslateUserProfile(user *coral.User, in *User, profile UserProfile) *cora
 
 func TranslateUser(tenantID string, in *User) *coral.User {
 	user := coral.NewUser(tenantID)
+	user.MongoID = in.MongoID
 	user.ID = in.ID
 	user.Role = in.Role
 	user.CreatedAt = in.CreatedAt
