@@ -36,6 +36,8 @@ func easyjsonF96a437cDecodeGithubComCoralprojectCoralImporterCommonCoral(in *jle
 			continue
 		}
 		switch key {
+		case "_id":
+			easyjsonF96a437cDecodeGithubComCoralprojectCoralImporterCommonCoral1(in, &out.MongoID)
 		case "tenantID":
 			out.TenantID = string(in.StringIntern())
 		case "id":
@@ -131,8 +133,13 @@ func easyjsonF96a437cEncodeGithubComCoralprojectCoralImporterCommonCoral(out *jw
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"tenantID\":"
+		const prefix string = ",\"_id\":"
 		out.RawString(prefix[1:])
+		easyjsonF96a437cEncodeGithubComCoralprojectCoralImporterCommonCoral1(out, in.MongoID)
+	}
+	{
+		const prefix string = ",\"tenantID\":"
+		out.RawString(prefix)
 		out.String(string(in.TenantID))
 	}
 	{
@@ -273,4 +280,46 @@ func (v *CommentAction) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *CommentAction) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonF96a437cDecodeGithubComCoralprojectCoralImporterCommonCoral(l, v)
+}
+func easyjsonF96a437cDecodeGithubComCoralprojectCoralImporterCommonCoral1(in *jlexer.Lexer, out *ObjectID) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "$oid":
+			out.OID = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonF96a437cEncodeGithubComCoralprojectCoralImporterCommonCoral1(out *jwriter.Writer, in ObjectID) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"$oid\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.OID))
+	}
+	out.RawByte('}')
 }

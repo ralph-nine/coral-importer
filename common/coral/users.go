@@ -123,6 +123,7 @@ type UserCommentCounts struct {
 }
 
 type User struct {
+	MongoID          ObjectID               `json:"_id"`
 	TenantID         string                 `json:"tenantID,intern" validate:"required"`
 	ID               string                 `json:"id" conform:"trim" validate:"required"`
 	Username         string                 `json:"username" validate:"required"`

@@ -6,6 +6,7 @@ import "time"
 // CommentAction is the base Coral Comment Action that represents an action
 // against a Comment.
 type CommentAction struct {
+	MongoID           ObjectID               `json:"_id"`
 	TenantID          string                 `json:"tenantID,intern" validate:"required"`
 	ID                string                 `json:"id" conform:"trim" validate:"required"`
 	SiteID            string                 `json:"siteID,intern" validate:"required"`

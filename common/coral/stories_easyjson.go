@@ -398,6 +398,8 @@ func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral3(in *jl
 			continue
 		}
 		switch key {
+		case "_id":
+			easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral4(in, &out.MongoID)
 		case "tenantID":
 			out.TenantID = string(in.StringIntern())
 		case "id":
@@ -469,8 +471,13 @@ func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral3(out *j
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"tenantID\":"
+		const prefix string = ",\"_id\":"
 		out.RawString(prefix[1:])
+		easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral4(out, in.MongoID)
+	}
+	{
+		const prefix string = ",\"tenantID\":"
+		out.RawString(prefix)
 		out.String(string(in.TenantID))
 	}
 	{
@@ -571,7 +578,49 @@ func (v *Story) UnmarshalJSON(data []byte) error {
 func (v *Story) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral3(l, v)
 }
-func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral4(in *jlexer.Lexer, out *MessageBox) {
+func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral4(in *jlexer.Lexer, out *ObjectID) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "$oid":
+			out.OID = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral4(out *jwriter.Writer, in ObjectID) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"$oid\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.OID))
+	}
+	out.RawByte('}')
+}
+func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral5(in *jlexer.Lexer, out *MessageBox) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -604,7 +653,7 @@ func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral4(in *jl
 		in.Consumed()
 	}
 }
-func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral4(out *jwriter.Writer, in MessageBox) {
+func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral5(out *jwriter.Writer, in MessageBox) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -624,27 +673,27 @@ func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral4(out *j
 // MarshalJSON supports json.Marshaler interface
 func (v MessageBox) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral4(&w, v)
+	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral5(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v MessageBox) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral4(w, v)
+	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral5(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *MessageBox) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral4(&r, v)
+	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral5(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *MessageBox) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral4(l, v)
+	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral5(l, v)
 }
-func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral5(in *jlexer.Lexer, out *CommentStatusCounts) {
+func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral6(in *jlexer.Lexer, out *CommentStatusCounts) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -683,7 +732,7 @@ func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral5(in *jl
 		in.Consumed()
 	}
 }
-func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral5(out *jwriter.Writer, in CommentStatusCounts) {
+func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral6(out *jwriter.Writer, in CommentStatusCounts) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -718,27 +767,27 @@ func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral5(out *j
 // MarshalJSON supports json.Marshaler interface
 func (v CommentStatusCounts) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral5(&w, v)
+	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral6(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v CommentStatusCounts) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral5(w, v)
+	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral6(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *CommentStatusCounts) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral5(&r, v)
+	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral6(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *CommentStatusCounts) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral5(l, v)
+	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral6(l, v)
 }
-func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral6(in *jlexer.Lexer, out *CommentModerationQueueCounts) {
+func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral7(in *jlexer.Lexer, out *CommentModerationQueueCounts) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -771,7 +820,7 @@ func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral6(in *jl
 		in.Consumed()
 	}
 }
-func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral6(out *jwriter.Writer, in CommentModerationQueueCounts) {
+func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral7(out *jwriter.Writer, in CommentModerationQueueCounts) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -791,27 +840,27 @@ func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral6(out *j
 // MarshalJSON supports json.Marshaler interface
 func (v CommentModerationQueueCounts) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral6(&w, v)
+	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral7(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v CommentModerationQueueCounts) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral6(w, v)
+	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral7(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *CommentModerationQueueCounts) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral6(&r, v)
+	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral7(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *CommentModerationQueueCounts) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral6(l, v)
+	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral7(l, v)
 }
-func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral7(in *jlexer.Lexer, out *CommentModerationCountsPerQueue) {
+func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral8(in *jlexer.Lexer, out *CommentModerationCountsPerQueue) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -846,7 +895,7 @@ func easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral7(in *jl
 		in.Consumed()
 	}
 }
-func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral7(out *jwriter.Writer, in CommentModerationCountsPerQueue) {
+func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral8(out *jwriter.Writer, in CommentModerationCountsPerQueue) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -871,23 +920,23 @@ func easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral7(out *j
 // MarshalJSON supports json.Marshaler interface
 func (v CommentModerationCountsPerQueue) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral7(&w, v)
+	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral8(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v CommentModerationCountsPerQueue) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral7(w, v)
+	easyjsonE08b5de9EncodeGithubComCoralprojectCoralImporterCommonCoral8(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *CommentModerationCountsPerQueue) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral7(&r, v)
+	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral8(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *CommentModerationCountsPerQueue) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral7(l, v)
+	easyjsonE08b5de9DecodeGithubComCoralprojectCoralImporterCommonCoral8(l, v)
 }

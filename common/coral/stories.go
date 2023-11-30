@@ -81,6 +81,7 @@ type StoryMetadata struct {
 
 // Story is the base Coral Story that is used in Coral.
 type Story struct {
+	MongoID       ObjectID               `json:"_id"`
 	TenantID      string                 `json:"tenantID,intern" validate:"required"`
 	ID            string                 `json:"id" conform:"trim" validate:"required"`
 	SiteID        string                 `json:"siteID,intern" validate:"required"`
