@@ -95,6 +95,12 @@ func (m *Mapper) LoadConfig() error {
 		}
 
 		m.operations = append(m.operations, func(pre *User, update *Update) bool {
+
+			userID, ok := (*pre)["id"].(string)
+			if !ok {
+				return false
+			}
+
 			// Try to get the profiles from the user.
 			profiles, ok := (*pre)["profiles"].([]interface{})
 			if !ok {
@@ -118,13 +124,8 @@ func (m *Mapper) LoadConfig() error {
 					continue
 				}
 
-				// Looks like we found the provider! Get the ID from the provider.
-				id, ok := p["id"].(string)
-				if !ok {
-					return false
-				}
-
-				update.SSO = id
+				// profiles.id value should be the user ID instead of email
+				update.SSO = userID
 
 				// If we have the email getter enabled... Then also check for that!
 				if getter == nil {
